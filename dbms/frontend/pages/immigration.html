@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBMS — Immigration Verification Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Hind:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/immigration.css">
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/svg/dbms-logo.svg" style="width:32px;height:32px" alt="DBMS">
+      <div><div class="sidebar-brand-text">DBMS</div><div class="sidebar-brand-sub">Immigration Terminal</div></div>
+    </div>
+    <div class="sidebar-nav">
+      <a href="/pages/dashboard.html" class="nav-item"><img src="/svg/icons/dashboard.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.dashboard">Dashboard</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/immigration.html" class="nav-item active"><img src="/svg/icons/passport.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.immigration">Immigration Verification</span></a>
+      <a href="/pages/sea-marshall.html" class="nav-item"><img src="/svg/icons/ship.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.sea_marshall">Sea Marshall</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/ngo-portal.html" class="nav-item"><img src="/svg/icons/ngo.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.ngo_portal">NGO Portal</span></a>
+      <a href="/pages/refugee-portal.html" class="nav-item"><img src="/svg/icons/refugee.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.refugee_portal">Refugee Portal</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="lang-pills"><button class="lang-pill active" data-lang="en">EN</button><button class="lang-pill" data-lang="hi">हिं</button></div>
+      <div class="sidebar-user" id="sidebar-user-info">Loading...</div>
+      <button class="btn btn-secondary" id="logout-btn" style="width:100%;font-size:11px">← Logout</button>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="top-header">
+      <div class="breadcrumb">Immigration › <strong>Verification Terminal</strong></div>
+      <div class="header-right">
+        <div class="live-clock" id="live-clock">—</div>
+        <div class="system-badge">Terminal Active</div>
+      </div>
+    </header>
+    <main class="content-area">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" data-i18n="immigration.title">Immigration Verification Terminal</h1>
+          <p class="page-subtitle">Biometric capture, OCR document scan, watchlist cross-reference, and entry certification</p>
+        </div>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <div class="tab-item active" data-tab="tab-verify" data-i18n="immigration.tab_verify">Passport Verification Terminal</div>
+        <div class="tab-item" data-tab="tab-travelers" data-i18n="immigration.tab_travelers">Traveler Database</div>
+        <div class="tab-item" data-tab="tab-visa-expiry">Visa Expiry Check</div>
+        <div class="tab-item" data-tab="tab-investigation">Under Investigation</div>
+      </div>
+
+      <!-- Tab: Verification Terminal -->
+      <div class="tab-content active" id="tab-verify">
+        <div class="immigration-panels">
+          <!-- Left: Camera -->
+          <div class="immigration-panel">
+            <div class="panel-header">
+              <span data-i18n="immigration.camera_label">Live Biometric Feed</span>
+              <span class="camera-active"><span class="camera-dot" id="camera-dot"></span><span id="camera-label">Starting camera...</span></span>
+            </div>
+            <video id="webcam-feed" autoplay muted playsinline></video>
+            <div class="webcam-controls">
+              <button class="btn btn-primary btn-sm" id="btn-capture" onclick="captureFrame()">
+                <img src="/svg/icons/camera.svg" style="width:13px;height:13px;filter:invert(1)" alt=""> <span data-i18n="immigration.capture_btn">Capture Frame</span>
+              </button>
+              <span class="text-muted text-xs" style="margin-left:8px">Frame used for face match analysis</span>
+            </div>
+          </div>
+
+          <!-- Right: Document Upload + Scan -->
+          <div class="immigration-panel">
+            <div class="panel-header" data-i18n="immigration.document_label">Document Upload — Passport Scan</div>
+            <div class="dropzone" id="dropzone">
+              <img src="/svg/icons/upload.svg" style="width:28px;height:28px;color:var(--color-primary);margin:0 auto;filter:invert(35%) sepia(100%) saturate(500%) hue-rotate(185deg)" alt="">
+              <div class="dropzone-text" data-i18n="immigration.dropzone_text">Drop passport scan here</div>
+              <div class="dropzone-sub" data-i18n="immigration.dropzone_sub">or click to upload — Accepts JPG, PNG, PDF</div>
+              <input type="file" id="file-input" accept="image/*,.pdf" style="display:none">
+            </div>
+            <div id="scan-container">
+              <div class="scan-status-box">
+                <div class="scan-status-text" id="scan-status">Upload a passport document to begin...</div>
+              </div>
+            </div>
+            <div style="padding:0 16px 16px">
+              <button class="btn btn-primary" id="btn-scan" style="width:100%" disabled onclick="initiateScan()">
+                <img src="/svg/icons/verified.svg" style="width:14px;height:14px;filter:invert(1)" alt=""> <span data-i18n="immigration.scan_btn">Initiate Verification Scan →</span>
+              </button>
+              <div style="margin-top:8px;font-size:11px;color:var(--color-text-muted);text-align:center">
+                Demo tip: Upload any image file — if filename contains "vikram" or "passport", the demo record (Vikram Singh / Z8892104) will be returned.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Certificate Result -->
+        <div id="cert-container"></div>
+      </div>
+
+      <!-- Tab: Traveler Database -->
+      <div class="tab-content" id="tab-travelers">
+        <div class="filter-bar">
+          <div class="search-wrap">
+            <img src="/svg/icons/search.svg" style="width:14px;height:14px;position:absolute;left:10px;top:50%;transform:translateY(-50%)" alt="">
+            <input type="search" id="traveler-search" placeholder="Search by name or passport number..." style="padding-left:34px">
+          </div>
+          <select id="traveler-status" style="width:200px">
+            <option value="">All Statuses</option>
+            <option value="Verified">Verified</option>
+            <option value="Under Verification">Under Verification</option>
+            <option value="Blacklisted">Blacklisted</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="openTravelerModal()">+ Add Traveler</button>
+          <button class="btn btn-secondary btn-sm" onclick="importTravelersCSV()" title="Bulk import travelers from a CSV file">↑ Import CSV</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportTravelersCSV()" title="Export current traveler list to CSV">↓ Export CSV</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr>
+              <th style="width:60px">Photo</th>
+              <th data-i18n="immigration.traveler_passport">Passport No.</th>
+              <th data-i18n="immigration.traveler_name">Name</th>
+              <th data-i18n="immigration.traveler_nationality">Nationality</th>
+              <th>Gender</th>
+              <th>DOB</th>
+              <th data-i18n="immigration.traveler_entry">Entry Point</th>
+              <th>Purpose</th>
+              <th>Visa Status</th>
+              <th data-i18n="immigration.traveler_status">Status</th>
+              <th style="width:120px">Actions</th>
+            </tr></thead>
+            <tbody id="traveler-tbody"><tr><td colspan="12" style="text-align:center;padding:20px;color:var(--color-text-muted)">Select tab to load travelers</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Tab: Visa Expiry -->
+      <div class="tab-content" id="tab-visa-expiry">
+        <div class="filter-bar" style="display:flex;justify-content:space-between;align-items:center;background:var(--color-surface);padding:16px;">
+          <div>
+            <h3 style="margin:0;font-size:16px;color:var(--color-text-primary)">Visa Expiry Tracker</h3>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <label class="form-label" style="margin:0">Warn before expiry (days):</label>
+            <input type="number" id="visa-warning-days" class="form-input" style="width:70px;padding:6px" value="30">
+            <button class="btn btn-primary btn-sm" onclick="saveExpiryThreshold()">Save Threshold</button>
+          </div>
+        </div>
+        <div style="padding:16px;display:flex;gap:24px;">
+          <!-- Expired List -->
+          <div style="flex:1;">
+            <h4 style="margin:0 0 16px;color:var(--color-alert);display:flex;align-items:center;gap:8px">
+              <span class="badge" style="background:var(--color-alert);color:#fff" id="count-expired">0</span> Already Expired
+            </h4>
+            <div id="list-expired" style="display:flex;flex-direction:column;gap:12px">
+              <p style="color:var(--color-text-muted);font-size:13px">Loading...</p>
+            </div>
+          </div>
+          <!-- Expiring Soon List -->
+          <div style="flex:1;">
+            <h4 style="margin:0 0 16px;color:var(--color-warning);display:flex;align-items:center;gap:8px">
+              <span class="badge" style="background:var(--color-warning);color:#fff" id="count-expiring">0</span> Expiring Soon
+            </h4>
+            <div id="list-expiring" style="display:flex;flex-direction:column;gap:12px">
+              <p style="color:var(--color-text-muted);font-size:13px">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Under Investigation -->
+      <div class="tab-content" id="tab-investigation">
+        <div class="filter-bar" style="background:var(--color-surface);padding:16px;margin-bottom:16px">
+          <h3 style="margin:0;font-size:16px;color:var(--color-text-primary)">Active Investigations Queue</h3>
+          <p style="margin:4px 0 0;font-size:12px;color:var(--color-text-muted)">Travellers flagged for secondary screening due to biometric mismatches or watchlists.</p>
+        </div>
+        <div id="investigation-queue" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(350px, 1fr));gap:16px;padding:0 16px;">
+          <p style="color:var(--color-text-muted);font-size:13px;grid-column:1/-1">Loading queue...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Traveler Add/Edit Modal -->
+<div class="traveler-modal-overlay" id="traveler-modal" style="display:none" onclick="closeTravelerModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add Traveler</div>
+      <button class="modal-close" onclick="closeTravelerModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modal-entity-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Full Name</label>
+          <input type="text" id="m-name" placeholder="As on passport">
+        </div>
+        <div class="form-group">
+          <label class="form-label required">Nationality</label>
+          <input type="text" id="m-nationality" placeholder="e.g. Indian">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Passport No.</label>
+          <input type="text" id="m-passport" placeholder="Leave blank to auto-assign TEMP ID">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <select id="m-gender">
+            <option value="">Select</option>
+            <option>Male</option><option>Female</option><option>Non-binary</option><option>Prefer not to say</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input type="date" id="m-dob">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Entry Point</label>
+          <input type="text" id="m-entry-point" placeholder="e.g. IGI Airport, Delhi">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Purpose of Visit</label>
+          <input type="text" id="m-visit-reason" placeholder="e.g. Business, Tourism">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Visa Status</label>
+          <select id="m-visa-status">
+            <option value="None">None</option>
+            <option value="Tourist">Tourist Visa</option>
+            <option value="Business">Business Visa</option>
+            <option value="Student">Student Visa</option>
+            <option value="Transit">Transit Visa</option>
+            <option value="Diplomatic">Diplomatic</option>
+            <option value="Expired">Expired</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Record Status</label>
+          <select id="m-status">
+            <option value="Under Verification">Under Verification</option>
+            <option value="Verified">Verified</option>
+            <option value="Blacklisted">Blacklisted</option>
+          </select>
+          <div style="font-size:11px;color:var(--color-text-muted);margin-top:4px">Setting 'Blacklisted' will flag this traveler on all watchlist checks.</div>
+        </div>
+      </div>
+      <!-- Passport Photo Upload (available in both Add and Edit mode) -->
+      <div class="form-group" id="photo-upload-group">
+        <label class="form-label">Passport Photo</label>
+        <div style="display:flex;align-items:center;gap:12px">
+          <img id="modal-photo-thumb" src="" alt="" class="photo-thumb" style="display:none">
+          <label style="cursor:pointer">
+            <input type="file" id="m-photo" accept="image/*" style="display:none">
+            <span class="btn btn-secondary btn-sm">📷 Upload / Change Photo</span>
+          </label>
+          <span id="modal-photo-name" style="font-size:12px;color:var(--color-text-muted)"></span>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-muted);margin-top:4px">Accepts JPG, PNG, WEBP. Photo is saved and linked to this traveler record.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeTravelerModal()">Cancel</button>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveTraveler()">Save Traveler</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/config.js"></script>
+<script src="/js/translation.js"></script>
+<script src="/js/ui-components.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/immigration.js"></script>
+</body>
+</html>

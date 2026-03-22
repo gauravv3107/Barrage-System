@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.env
+
+# SQLite DB (runtime data — not source code)
+*.sqlite
+*.db
+
+# Uploaded photos (runtime data)
+dbms/backend/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Logs
+*.log

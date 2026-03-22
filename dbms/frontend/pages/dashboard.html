@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBMS — Command Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Hind:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div class="app-shell">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/svg/dbms-logo.svg" style="width:32px;height:32px" alt="DBMS">
+      <div>
+        <div class="sidebar-brand-text">DBMS</div>
+        <div class="sidebar-brand-sub">Border Intelligence Platform</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label" data-i18n="nav.section_navigation">Navigation</div>
+      <a href="/pages/dashboard.html" class="nav-item active">
+        <img src="/svg/icons/dashboard.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span data-i18n="nav.dashboard">Dashboard</span>
+      </a>
+      <div class="sidebar-section-label" data-i18n="nav.border_patrol">Border Patrol</div>
+      <a href="/pages/border-patrol/bsf.html" class="nav-item">
+        <img src="/svg/icons/border-patrol.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span>BSF — Pakistan &amp; Bangladesh</span>
+      </a>
+      <a href="/pages/border-patrol/itbp.html" class="nav-item">
+        <img src="/svg/icons/border-patrol.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span>ITBP — China &amp; Tibet</span>
+      </a>
+      <a href="/pages/border-patrol/ssb.html" class="nav-item">
+        <img src="/svg/icons/border-patrol.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span>SSB — Nepal &amp; Bhutan</span>
+      </a>
+      <a href="/pages/border-patrol/assam-rifles.html" class="nav-item">
+        <img src="/svg/icons/border-patrol.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span>Assam Rifles — Myanmar</span>
+      </a>
+      <a href="/pages/border-patrol/cisf.html" class="nav-item">
+        <img src="/svg/icons/border-patrol.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span>CISF — Airports &amp; Seaports</span>
+      </a>
+      <hr class="sidebar-divider">
+      <a href="/pages/sea-marshall.html" class="nav-item">
+        <img src="/svg/icons/ship.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span data-i18n="nav.sea_marshall">Sea Marshall</span>
+      </a>
+      <a href="/pages/immigration.html" class="nav-item">
+        <img src="/svg/icons/passport.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span data-i18n="nav.immigration">Immigration Verification</span>
+      </a>
+      <hr class="sidebar-divider">
+      <a href="/pages/ngo-portal.html" class="nav-item">
+        <img src="/svg/icons/ngo.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span data-i18n="nav.ngo_portal">NGO Portal</span>
+      </a>
+      <a href="/pages/refugee-portal.html" class="nav-item">
+        <img src="/svg/icons/refugee.svg" style="width:16px;height:16px;filter:invert(1)" alt=""><span data-i18n="nav.refugee_portal">Refugee Portal</span>
+      </a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="lang-pills">
+        <button class="lang-pill active" data-lang="en">EN</button>
+        <button class="lang-pill" data-lang="hi">हिं</button>
+      </div>
+      <div class="sidebar-user" id="sidebar-user-info">Loading...</div>
+      <button class="btn btn-secondary" id="logout-btn" style="width:100%;font-size:11px">
+        <img src="/svg/icons/logout.svg" style="width:13px;height:13px" alt=""> Logout
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <header class="top-header">
+      <div class="breadcrumb">Dashboard › <strong data-i18n="dashboard.title">Command Overview</strong></div>
+      <div class="header-right">
+        <div class="live-clock" id="live-clock">—</div>
+        <div class="system-badge">System Online</div>
+      </div>
+    </header>
+
+    <main class="content-area">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" data-i18n="dashboard.title">Command Overview</h1>
+          <p class="page-subtitle" data-i18n="dashboard.subtitle">Real-time border intelligence feed — India's comprehensive monitoring platform</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-secondary" onclick="loadKPIs();showToast('Refreshed','info')">↻ Refresh</button>
+        </div>
+      </div>
+
+      <!-- KPI Row -->
+      <div class="kpi-grid">
+        <div class="kpi-card" style="border-left-color:var(--color-primary)">
+          <div class="kpi-label" data-i18n="dashboard.kpi_volume">Total Transit Volume</div>
+          <div class="kpi-value" id="kpi-volume">—</div>
+          <div class="kpi-delta" data-i18n="dashboard.kpi_volume_sub">Active entity records</div>
+        </div>
+        <div class="kpi-card" style="border-left-color:var(--color-alert)">
+          <div class="kpi-label" data-i18n="dashboard.kpi_flags">Active Security Flags</div>
+          <div class="kpi-value text-danger" id="kpi-flags">—</div>
+          <div class="kpi-delta down" data-i18n="dashboard.kpi_flags_sub">⚠ Requires attention</div>
+        </div>
+        <div class="kpi-card" style="border-left-color:var(--color-warning)">
+          <div class="kpi-label">Registered Refugees</div>
+          <div class="kpi-value" id="kpi-refugees">—</div>
+          <div class="kpi-delta">Total registered across all forces</div>
+        </div>
+        <div class="kpi-card" style="border-left-color:var(--color-success)">
+          <div class="kpi-label" data-i18n="dashboard.kpi_incidents">Open Incidents</div>
+          <div class="kpi-value" id="kpi-incidents">—</div>
+          <div class="kpi-delta" data-i18n="dashboard.kpi_incidents_sub">System-detected events</div>
+        </div>
+      </div>
+
+      <!-- Live Map -->
+      <div class="map-card">
+        <div class="map-card-header">
+          <span class="map-card-title" data-i18n="dashboard.map_title">Live Border Activity Map</span>
+          <span class="live-indicator" data-i18n="dashboard.map_live">● LIVE</span>
+        </div>
+        <div id="main-map"></div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--marker-airport)"></div><span data-i18n="dashboard.legend_airport">Airport</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--marker-seaport)"></div><span data-i18n="dashboard.legend_seaport">Seaport</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--marker-land)"></div><span data-i18n="dashboard.legend_land">Land Border</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--marker-camp)"></div><span data-i18n="dashboard.legend_camp">Refugee Camp</span></div>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="dashboard.chart_entity_types">Entity Type Distribution</div>
+          <div class="chart-canvas-wrap"><canvas id="chart-types"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="dashboard.chart_entry_points">Top Entry Points by Volume</div>
+          <div class="chart-canvas-wrap"><canvas id="chart-entry-points"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title" data-i18n="dashboard.chart_trend">Security Flags — 7-Day Trend</div>
+          <div class="chart-canvas-wrap"><canvas id="chart-trend"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ── Refugee & NGO Assignment Section ───────────────── -->
+      <div class="section-divider" style="margin:32px 0 16px;font-size:13px;font-weight:700;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.07em">Refugee Management</div>
+
+      <div class="tab-bar" id="refugee-tab-bar">
+        <div class="tab-item active" data-tab="dash-tab-refugees">Registered Refugees</div>
+        <div class="tab-item" data-tab="dash-tab-ngo">NGO Assignments</div>
+        <div class="tab-item" data-tab="dash-tab-ngo-mgmt">NGO Management</div>
+        <div class="tab-item" data-tab="dash-tab-unit-stats">Unit Statistics</div>
+      </div>
+
+      <!-- Tab: Registered Refugees -->
+      <div class="tab-content active" id="dash-tab-refugees">
+        <div class="filter-bar">
+          <div style="font-size:13px;color:var(--color-text-muted)">All refugees registered across all border forces</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadDashboardRefugees()">↻ Refresh</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr>
+              <th>Provisional ID</th>
+              <th>Name</th>
+              <th>Nationality</th>
+              <th>Force</th>
+              <th>Registration Date</th>
+              <th>Camp</th>
+              <th>Assigned NGO</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="dash-refugee-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-text-muted)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: NGO Assignments -->
+      <div class="tab-content" id="dash-tab-ngo">
+        <div class="filter-bar">
+          <div style="font-size:13px;color:var(--color-text-muted)">Assign or reassign any refugee to an NGO</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadNgoAssignmentsTab()">↻ Refresh</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr>
+              <th>Provisional ID</th>
+              <th>Name</th>
+              <th>Nationality</th>
+              <th>Force</th>
+              <th>Current NGO</th>
+              <th style="min-width:260px">Assign / Reassign NGO</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="dash-ngo-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--color-text-muted)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: NGO Management -->
+      <div class="tab-content" id="dash-tab-ngo-mgmt">
+        <div class="filter-bar">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:13px;color:var(--color-text-muted)">Manage authorized NGOs and monitor capacity</div>
+            <select id="ngo-status-filter" class="form-input" style="padding:4px 8px;font-size:13px;height:auto" onchange="loadNgoMgmtTab()">
+              <option value="active">Viewing: Active NGOs</option>
+              <option value="deactivated">Viewing: Deactivated NGOs</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="loadNgoMgmtTab()">↻ Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddNgoModal()">+ Add NGO</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr>
+              <th>Name</th>
+              <th>Focus Area</th>
+              <th>Contact</th>
+              <th style="width:200px">Capacity</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="dash-ngo-mgmt-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--color-text-muted)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Unit Statistics -->
+      <div class="tab-content" id="dash-tab-unit-stats">
+        <div class="filter-bar">
+          <div style="font-size:13px;color:var(--color-text-muted)">Unit-wise performance metrics</div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <select id="unit-stats-selector" class="form-input" style="padding:4px 8px;font-size:13px;height:auto" onchange="renderUnitStats()">
+              <option value="All">All Units</option>
+              <option value="BSF">BSF (Pakistan &amp; Bangladesh)</option>
+              <option value="ITBP">ITBP (China &amp; Tibet)</option>
+              <option value="SSB">SSB (Nepal &amp; Bhutan)</option>
+              <option value="Assam Rifles">Assam Rifles (Myanmar)</option>
+              <option value="CISF">CISF (Airports &amp; Seaports)</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="loadUnitStats()">↻ Refresh</button>
+          </div>
+        </div>
+        
+        <!-- All Units View (Chart) -->
+        <div id="unit-stats-all-view" style="margin-top:16px">
+          <div class="chart-card" style="height:380px">
+            <div class="chart-title">Unit Performance Overview</div>
+            <div class="chart-canvas-wrap"><canvas id="chart-unit-stats"></canvas></div>
+          </div>
+        </div>
+        
+        <!-- Single Unit View (Cards) -->
+        <div id="unit-stats-single-view" style="display:none;margin-top:16px">
+          <div class="kpi-grid" style="grid-template-columns:repeat(3, 1fr)">
+            <div class="kpi-card" style="border-left-color:var(--color-primary)">
+              <div class="kpi-label">Refugees Registered</div>
+              <div class="kpi-value" id="kpi-unit-refugees">—</div>
+              <div class="kpi-delta">By selected unit</div>
+            </div>
+            <div class="kpi-card" style="border-left-color:var(--color-info)">
+              <div class="kpi-label">Vessels Checked</div>
+              <div class="kpi-value" id="kpi-unit-vessels">—</div>
+              <div class="kpi-delta">Maritime/Port inspections</div>
+            </div>
+            <div class="kpi-card" style="border-left-color:var(--color-alert)">
+              <div class="kpi-label">Flagged Incidents</div>
+              <div class="kpi-value text-danger" id="kpi-unit-incidents">—</div>
+              <div class="kpi-delta down">Security anomalies detected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Alerts Section ──────────────────────────────────────── -->
+      <div class="section-divider" style="margin:32px 0 16px;font-size:13px;font-weight:700;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.07em">
+        System Alerts &amp; Notifications
+        <span id="alert-unread-badge" style="display:none;margin-left:8px;background:var(--color-alert);color:#fff;font-size:11px;padding:2px 8px;border-radius:100px;font-weight:700">0</span>
+      </div>
+
+      <div class="tab-bar" id="alerts-tab-bar">
+        <div class="tab-item active" data-atab="atab-active">Active Alerts</div>
+        <div class="tab-item" data-atab="atab-history">History</div>
+      </div>
+
+      <!-- Tab: Active Alerts -->
+      <div class="tab-content active" id="atab-active">
+        <div class="filter-bar">
+          <div style="font-size:13px;color:var(--color-text-muted)">Unread alerts requiring attention</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="loadAlerts()">↻ Refresh</button>
+            <button class="btn btn-secondary btn-sm" onclick="markAllAlertsRead()">✓ Mark All Read</button>
+          </div>
+        </div>
+        <div id="alerts-active-list" style="display:flex;flex-direction:column;gap:8px;padding:4px 0 16px">
+          <div style="text-align:center;padding:24px;color:var(--color-text-muted)">Loading alerts…</div>
+        </div>
+      </div>
+
+      <!-- Tab: Alert History -->
+      <div class="tab-content" id="atab-history">
+        <div class="filter-bar">
+          <div style="font-size:13px;color:var(--color-text-muted)">All alerts including acknowledged ones</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadAllAlerts()">↻ Refresh</button>
+        </div>
+        <div id="alerts-history-list" style="display:flex;flex-direction:column;gap:8px;padding:4px 0 16px">
+          <div style="text-align:center;padding:24px;color:var(--color-text-muted)">Click Refresh to load history</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Add NGO Modal -->
+<div class="modal-overlay" id="add-ngo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal-card" style="background:var(--color-surface);border-radius:var(--radius-lg);width:480px;max-width:90vw;box-shadow:0 10px 30px rgba(0,0,0,0.2)">
+    <div style="padding:20px;border-bottom:1px solid var(--color-border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="font-size:16px;font-weight:700">Add New NGO</h3>
+      <button onclick="document.getElementById('add-ngo-modal').style.display='none'" style="background:none;border:none;font-size:18px;cursor:pointer">&times;</button>
+    </div>
+    <div style="padding:20px">
+      <form id="add-ngo-form" onsubmit="submitAddNgoForm(event)">
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">NGO Name *</label>
+          <input type="text" id="ngo-name" required class="form-input" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:var(--radius-sm)">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Focus Area</label>
+          <input type="text" id="ngo-focus" placeholder="e.g. Legal Aid, Medical" class="form-input" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:var(--radius-sm)">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Contact Person</label>
+            <input type="text" id="ngo-contact-person" class="form-input" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:var(--radius-sm)">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Email</label>
+            <input type="email" id="ngo-contact-email" class="form-input" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:var(--radius-sm)">
+          </div>
+        </div>
+        <div style="margin-bottom:20px">
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Max Capacity</label>
+          <input type="number" id="ngo-capacity" min="0" value="100" class="form-input" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:var(--radius-sm)">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-ngo-modal').style.display='none'">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-ngo">Save NGO</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Refugee Modal -->
+<div class="modal-overlay" id="edit-refugee-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal-card" style="background:var(--color-surface);border-radius:var(--radius-lg);width:480px;max-width:90vw;box-shadow:0 10px 30px rgba(0,0,0,0.2)">
+    <div style="padding:20px;border-bottom:1px solid var(--color-border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="font-size:16px;font-weight:700">Edit Refugee Details</h3>
+      <button onclick="document.getElementById('edit-refugee-modal').style.display='none'" style="background:none;border:none;font-size:18px;cursor:pointer">&times;</button>
+    </div>
+    <div style="padding:20px">
+      <form id="edit-refugee-form" onsubmit="submitEditRefugeeForm(event)">
+        <input type="hidden" id="edit-refugee-id">
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Name *</label>
+          <input type="text" id="edit-ref-name" required class="form-input" style="width:100%;padding:8px">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Nationality</label>
+            <input type="text" id="edit-ref-nationality" class="form-input" style="width:100%;padding:8px">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Assigned Camp</label>
+            <input type="text" id="edit-ref-camp" class="form-input" style="width:100%;padding:8px">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Assigned NGO</label>
+            <select id="edit-ref-ngo" class="form-input" style="width:100%;padding:8px"></select>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Status</label>
+            <select id="edit-ref-status" class="form-input" style="width:100%;padding:8px">
+              <option value="Active">Active</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Flagged">Flagged</option>
+              <option value="Repatriated">Repatriated</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:20px">
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px">Assistance Type</label>
+          <input type="text" id="edit-ref-assistance" class="form-input" style="width:100%;padding:8px">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-refugee-modal').style.display='none'">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-refugee">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/translation.js"></script>
+<script src="/js/ui-components.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/map.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

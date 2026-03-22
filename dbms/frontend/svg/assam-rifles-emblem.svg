@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" fill="none">
+  <!-- Oval badge shape -->
+  <ellipse cx="50" cy="54" rx="46" ry="50" fill="#002147" stroke="#C0A860" stroke-width="2.5"/>
+  <!-- Stylized elephant head -->
+  <circle cx="50" cy="44" r="16" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <!-- Trunk -->
+  <path d="M44 56 Q38 60 42 68 Q46 72 48 66" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <!-- Tusks -->
+  <path d="M38 52 Q32 56 36 62" fill="none" stroke="#C0A860" stroke-width="1.5"/>
+  <!-- Ears -->
+  <path d="M34 40 Q26 44 28 56 Q32 50 36 50" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>
+  <path d="M66 40 Q74 44 72 56 Q68 50 64 50" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>
+  <!-- Eyes -->
+  <circle cx="44" cy="40" r="2" fill="#FFFFFF"/>
+  <circle cx="56" cy="40" r="2" fill="#FFFFFF"/>
+  <text x="50" y="90" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">ASSAM RIFLES</text>
+  <text x="50" y="104" font-family="Inter,sans-serif" font-size="6.5" font-weight="600" fill="rgba(255,255,255,0.65)" text-anchor="middle">GOVERNMENT OF INDIA</text>
+</svg>

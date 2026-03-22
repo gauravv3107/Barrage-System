@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SeaPort NGO Portal - Login</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .login-container {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    }
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .login-logo h1 {
+      color: var(--color-primary);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .login-logo p {
+      color: var(--color-text-muted);
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="login-container">
+    <div class="login-box">
+      <div class="login-logo">
+        <h1>SeaPort NGO Portal</h1>
+        <p>Humanitarian Operations Network</p>
+      </div>
+      
+      <form id="ngo-login-form">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="login-email" class="form-input" required placeholder="admin@ngo.org">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="login-password" class="form-input" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary login-btn">Sign In to NGO Portal</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById('ngo-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      
+      const btn = document.querySelector('.login-btn');
+      btn.innerText = 'Verifying...';
+      btn.disabled = true;
+
+      const res = await apiFetch('/api/auth/ngo-login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password: pass })
+      });
+
+      if (res.success) {
+        sessionStorage.setItem('ngo_token', res.data.token);
+        sessionStorage.setItem('ngo_role', res.data.role);
+        sessionStorage.setItem('ngo_id', res.data.ngo_id);
+        sessionStorage.setItem('ngo_name_user', res.data.name);
+        
+        if (res.data.role === 'ngo_admin') {
+          window.location.href = 'admin-dashboard.html';
+        } else {
+          window.location.href = 'worker-dashboard.html';
+        }
+      } else {
+        showToast(res.message || 'Login failed', 'error');
+        btn.innerText = 'Sign In to NGO Portal';
+        btn.disabled = false;
+      }
+    });
+
+    // Auto-redirect if already logged in
+    document.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem('ngo_token')) {
+        const role = sessionStorage.getItem('ngo_role');
+        if (role === 'ngo_admin') window.location.href = 'admin-dashboard.html';
+        if (role === 'ngo_worker') window.location.href = 'worker-dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>

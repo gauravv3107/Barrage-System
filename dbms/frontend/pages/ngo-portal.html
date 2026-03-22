@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBMS — NGO Support Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Hind:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/ngo-portal.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/svg/dbms-logo.svg" style="width:32px;height:32px" alt="DBMS">
+      <div><div class="sidebar-brand-text">DBMS</div><div class="sidebar-brand-sub">NGO Support Portal</div></div>
+    </div>
+    <div class="sidebar-nav">
+      <a href="/pages/dashboard.html" class="nav-item"><img src="/svg/icons/dashboard.svg" style="width:16px;filter:invert(1)" alt=""><span>Dashboard</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/ngo-portal.html" class="nav-item active"><img src="/svg/icons/ngo.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.ngo_portal">Assignments</span></a>
+      <a href="/pages/refugee-portal.html" class="nav-item"><img src="/svg/icons/refugee.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.refugee_portal">Refugee Portal</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/immigration.html" class="nav-item"><img src="/svg/icons/passport.svg" style="width:16px;filter:invert(1)" alt=""><span>Immigration</span></a>
+      <a href="/pages/sea-marshall.html" class="nav-item"><img src="/svg/icons/ship.svg" style="width:16px;filter:invert(1)" alt=""><span>Sea Marshall</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="lang-pills">
+        <button class="lang-pill active" data-lang="en">EN</button>
+        <button class="lang-pill" data-lang="hi">हिं</button>
+      </div>
+      <div class="sidebar-user" id="sidebar-user-info">NGO User</div>
+      <button class="btn btn-secondary" id="logout-btn" style="width:100%;font-size:11px">← Logout</button>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="top-header">
+      <div class="breadcrumb">NGO Portal › <strong>Humanitarian Coordination</strong></div>
+      <div class="header-right">
+        <div class="live-clock" id="live-clock">—</div>
+        <div class="system-badge">Live Feed</div>
+      </div>
+    </header>
+    <main class="content-area">
+      <!-- Cross-link to standalone NGO Portal -->
+      <div style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h3 style="color: #065f46; margin-bottom: 4px; font-size: 16px;">New Dedicated NGO Portal Available</h3>
+          <p style="color: #047857; font-size: 14px; margin: 0;">Access the full-featured standalone NGO management interface and field worker dashboards.</p>
+        </div>
+        <a href="http://127.0.0.1:8000" target="_blank" class="btn btn-primary" style="background-color: #047857; text-decoration: none; padding: 10px 20px; border-radius: 6px; color: white; font-weight: 600; border:none; cursor:pointer;" onclick="if(window.location.protocol==='file:') this.href='../../../ngo-frontend/index.html';">Open NGO Portal &rarr;</a>
+      </div>
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" data-i18n="ngo.title">NGO Support Portal</h1>
+          <p class="page-subtitle" data-i18n="ngo.subtitle">Humanitarian Coordination Dashboard — Incoming refugee assignments from border forces</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-secondary" id="btn-refresh">↻ Refresh</button>
+        </div>
+      </div>
+
+      <!-- Assignment Count Summary — 5-stage case workflow -->
+      <div class="ngo-stats">
+        <div class="ngo-stat" style="border-left:4px solid var(--color-warning)">
+          <div class="ngo-stat-num text-warning" id="count-active">—</div>
+          <div class="ngo-stat-label">Active</div>
+        </div>
+        <div class="ngo-stat" style="border-left:4px solid var(--color-primary)">
+          <div class="ngo-stat-num text-primary" id="count-aid-given">—</div>
+          <div class="ngo-stat-label">Aid Given</div>
+        </div>
+        <div class="ngo-stat" style="border-left:4px solid #9333ea">
+          <div class="ngo-stat-num" id="count-medical-review" style="color:#9333ea">—</div>
+          <div class="ngo-stat-label">Medical Review</div>
+        </div>
+        <div class="ngo-stat" style="border-left:4px solid var(--color-success)">
+          <div class="ngo-stat-num text-success" id="count-completed">—</div>
+          <div class="ngo-stat-label">Resolved</div>
+        </div>
+      </div>
+
+
+      <!-- Data Visualizations — shown once data is loaded -->
+      <div class="charts-grid" id="ngo-charts-grid" style="display:none">
+        <div class="chart-card">
+          <div class="chart-title">Assignment Status Distribution</div>
+          <div class="chart-canvas-wrap"><canvas id="ngo-chart-status"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Assignments by Border Force</div>
+          <div class="chart-canvas-wrap"><canvas id="ngo-chart-force"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Refugee Nationality Breakdown</div>
+          <div class="chart-canvas-wrap"><canvas id="ngo-chart-nationality"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:16px;border-bottom:1px solid var(--color-border);margin-bottom:16px;padding:0 24px;">
+        <div class="ngo-tab active" data-tab="tab-assignments" style="padding:12px 0;cursor:pointer;font-weight:600;color:var(--color-primary);border-bottom:2px solid var(--color-primary);">Assignments</div>
+        <div class="ngo-tab" data-tab="tab-appeals" style="padding:12px 0;cursor:pointer;font-weight:600;color:var(--color-text-muted);border-bottom:2px solid transparent;">Appeals & Requests</div>
+      </div>
+
+      <div id="tab-assignments" class="ngo-tab-content" style="display:block">
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <div style="display:flex;gap:12px;align-items:center">
+            <label class="form-label" style="white-space:nowrap;margin:0">View:</label>
+            <select id="case-view-filter" style="width:180px;padding:6px;border-radius:4px" onchange="loadAssignments()">
+              <option value="active">Active Cases</option>
+              <option value="resolved">History (Resolved)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Assignments Feed -->
+        <div class="assignments-feed" id="assignments-container">
+          <p style="color:var(--color-text-muted);padding:16px">Loading assignments...</p>
+        </div>
+      </div>
+
+      <div id="tab-appeals" class="ngo-tab-content" style="display:none">
+        <div class="assignments-feed" id="ngo-appeals-container">
+          <p style="color:var(--color-text-muted);padding:16px">Loading appeals...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="/js/config.js"></script>
+<script src="/js/translation.js"></script>
+<script src="/js/ui-components.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/ngo-portal.js"></script>
+</body>
+</html>

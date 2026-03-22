@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" fill="none">
+  <circle cx="50" cy="54" r="46" fill="#002147" stroke="#C0A860" stroke-width="2.5"/>
+  <!-- Mountain peaks -->
+  <path d="M20 72 L35 45 L45 58 L50 38 L55 58 L65 45 L80 72 Z" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+  <!-- Snow caps -->
+  <path d="M50 38 L46 48 L54 48 Z" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M35 45 L32 52 L38 52 Z" fill="#FFFFFF" opacity="0.7"/>
+  <path d="M65 45 L62 52 L68 52 Z" fill="#FFFFFF" opacity="0.7"/>
+  <text x="50" y="86" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">ITBP</text>
+  <text x="50" y="100" font-family="Inter,sans-serif" font-size="6.5" font-weight="600" fill="rgba(255,255,255,0.65)" text-anchor="middle">GOVERNMENT OF INDIA</text>
+</svg>

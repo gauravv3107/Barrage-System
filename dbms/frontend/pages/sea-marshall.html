@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBMS — Sea Marshall Command</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Hind:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/sea-marshall.css">
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/svg/dbms-logo.svg" style="width:32px;height:32px" alt="DBMS">
+      <div><div class="sidebar-brand-text">DBMS</div><div class="sidebar-brand-sub">Sea Marshall Command</div></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label" data-i18n="nav.section_navigation">Navigation</div>
+      <a href="/pages/dashboard.html" class="nav-item"><img src="/svg/icons/dashboard.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.dashboard">Dashboard</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/sea-marshall.html" class="nav-item active"><img src="/svg/icons/ship.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.sea_marshall">Sea Marshall</span></a>
+      <a href="/pages/immigration.html" class="nav-item"><img src="/svg/icons/passport.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.immigration">Immigration</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/ngo-portal.html" class="nav-item"><img src="/svg/icons/ngo.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.ngo_portal">NGO Portal</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="lang-pills"><button class="lang-pill active" data-lang="en">EN</button><button class="lang-pill" data-lang="hi">हिं</button></div>
+      <div class="sidebar-user" id="sidebar-user-info">Loading...</div>
+      <button class="btn btn-secondary" id="logout-btn" style="width:100%;font-size:11px">← Logout</button>
+    </div>
+  </nav>
+  <div class="main-content">
+    <header class="top-header">
+      <div class="breadcrumb">Sea Marshall › <strong>Vessel Traffic Management</strong></div>
+      <div class="header-right">
+        <div class="live-clock" id="live-clock">—</div>
+        <div class="system-badge">System Online</div>
+      </div>
+    </header>
+    <main class="content-area">
+
+      <!-- KPI Row -->
+
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi-card" style="border-left-color:var(--color-primary)">
+          <div class="kpi-label" data-i18n="sea_marshall.kpi_total">Total Vessels</div><div class="kpi-value" id="kpi-total">—</div>
+          <div class="kpi-delta" data-i18n="sea_marshall.kpi_total_sub">In Indian waters / EEZ</div>
+        </div>
+        <div class="kpi-card" style="border-left-color:var(--color-success)">
+          <div class="kpi-label" data-i18n="sea_marshall.kpi_cleared">Cleared for Entry</div><div class="kpi-value text-success" id="kpi-cleared">—</div>
+          <div class="kpi-delta up" data-i18n="sea_marshall.kpi_cleared_sub">✓ No security concerns</div>
+        </div>
+        <div class="kpi-card" style="border-left-color:var(--color-info)">
+          <div class="kpi-label" data-i18n="sea_marshall.kpi_inspected">Under Inspection</div><div class="kpi-value" id="kpi-inspected">—</div>
+          <div class="kpi-delta" data-i18n="sea_marshall.kpi_inspected_sub">Boarded / intercepted</div>
+        </div>
+        <div class="kpi-card" style="border-left-color:var(--color-alert)">
+          <div class="kpi-label" data-i18n="sea_marshall.kpi_alerts">Critical Alerts</div><div class="kpi-value text-danger" id="kpi-alerts">—</div>
+          <div class="kpi-delta down" data-i18n="sea_marshall.kpi_alerts_sub">⚠ Immediate action required</div>
+        </div>
+      </div>
+
+      <!-- Manual IMO Lookup Bar -->
+      <div class="card" style="margin-bottom:16px;padding:14px 20px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-text-muted);white-space:nowrap" data-i18n="sea_marshall.imo_lookup">
+            🔍 Manual IMO Lookup
+          </div>
+          <div style="display:flex;flex:1;gap:8px;max-width:480px">
+            <input
+              type="text"
+              id="imo-lookup-input"
+              placeholder="Enter IMO number (e.g. 9234567) and press Enter..."
+              data-i18n-placeholder="sea_marshall.imo_lookup_hint"
+              style="flex:1"
+              onkeypress="if(event.key==='Enter') lookupByIMO()"
+            >
+            <button class="btn btn-primary btn-sm" onclick="lookupByIMO()" data-i18n="sea_marshall.imo_lookup_btn">Look Up →</button>
+          </div>
+          <div style="font-size:11px;color:var(--color-text-muted)">
+            Opens full vessel profile in inspection panel. Works for any IMO in the register.
+          </div>
+        </div>
+      </div>
+
+      <!-- Register New Vessel Sub-Bar -->
+      <div class="card register-vessel-card" style="margin-bottom:16px">
+        <div class="register-vessel-header" onclick="toggleRegisterPanel()">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="register-vessel-icon">🚢</div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--color-text)" data-i18n="sea_marshall.register_vessel">Register New Vessel</div>
+              <div style="font-size:11px;color:var(--color-text-muted)">Add a vessel to the register — all command actions will be available after registration</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="register-new-badge" data-i18n="sea_marshall.register_new_badge">+ NEW ENTRY</span>
+            <span class="register-toggle-arrow" id="register-toggle-arrow">▼</span>
+          </div>
+        </div>
+        <div class="register-vessel-body" id="register-vessel-body">
+          <form id="register-vessel-form" onsubmit="event.preventDefault(); registerNewVessel()">
+            <div class="register-form-grid">
+              <!-- Row 1 -->
+              <div class="form-group">
+                <label class="form-label required" data-i18n="sea_marshall.form_imo">IMO Number</label>
+                <input type="text" id="rv-imo" placeholder="e.g. 9234567" pattern="\d{7}" maxlength="7" required>
+                <span class="form-hint">7-digit IMO number</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label required" data-i18n="sea_marshall.form_name">Vessel Name</label>
+                <input type="text" id="rv-name" placeholder="e.g. MV Pacific Star" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required" data-i18n="sea_marshall.form_type">Vessel Type</label>
+                <select id="rv-type" required>
+                  <option value="">— Select type —</option>
+                  <option>Bulk Carrier</option>
+                  <option>Container Ship</option>
+                  <option>Oil Tanker (VLCC)</option>
+                  <option>LNG Tanker</option>
+                  <option>Chemical Tanker</option>
+                  <option>General Cargo</option>
+                  <option>Passenger Cruise Liner</option>
+                  <option>RoRo Ferry</option>
+                  <option>Fishing Vessel</option>
+                  <option>Offshore Supply Vessel</option>
+                  <option>Research Vessel</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <!-- Row 2 -->
+              <div class="form-group">
+                <label class="form-label required" data-i18n="sea_marshall.form_flag">Flag State</label>
+                <input type="text" id="rv-flag" placeholder="e.g. India, Panama" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="sea_marshall.form_country">Country of Origin</label>
+                <input type="text" id="rv-country" placeholder="e.g. India">
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="sea_marshall.form_tonnage">Gross Tonnage (GT)</label>
+                <input type="number" id="rv-tonnage" placeholder="e.g. 45000" min="1">
+              </div>
+              <!-- Row 3 -->
+              <div class="form-group">
+                <label class="form-label" data-i18n="sea_marshall.form_captain">Captain</label>
+                <input type="text" id="rv-captain" placeholder="e.g. Capt. Rajesh Kumar">
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="sea_marshall.form_crew">Crew Count</label>
+                <input type="number" id="rv-crew" placeholder="e.g. 22" min="1">
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="sea_marshall.form_lastport">Last Port of Call</label>
+                <input type="text" id="rv-lastport" placeholder="e.g. Colombo Port, Sri Lanka">
+              </div>
+              <!-- Row 4 -->
+              <div class="form-group">
+                <label class="form-label" data-i18n="sea_marshall.form_dest">Destination Port</label>
+                <input type="text" id="rv-dest" placeholder="e.g. JNPT, Navi Mumbai">
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="sea_marshall.form_eta">ETA (Expected Time of Arrival)</label>
+                <input type="datetime-local" id="rv-eta">
+              </div>
+              <div class="form-group">
+                <label class="form-label" data-i18n="sea_marshall.form_cargo">Declared Cargo</label>
+                <input type="text" id="rv-cargo" placeholder="e.g. Iron Ore — 42,000 MT">
+              </div>
+              <!-- Row 5: Status -->
+              <div class="form-group" style="grid-column:span 3">
+                <label class="form-label required" style="font-size:13px" data-i18n="sea_marshall.form_init_status">Initial Verification Status</label>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
+                  <label class="rv-status-option">
+                    <input type="radio" name="rv-status" value="CLEARED" id="rv-status-cleared">
+                    <span class="rv-status-pill cleared" data-i18n="sea_marshall.form_cleared">✓ Verified &amp; Cleared</span>
+                  </label>
+                  <label class="rv-status-option">
+                    <input type="radio" name="rv-status" value="UNVERIFIED" id="rv-status-unverified" checked>
+                    <span class="rv-status-pill unverified" data-i18n="sea_marshall.form_unverified">⏳ Unverified (Pending Review)</span>
+                  </label>
+                  <label class="rv-status-option">
+                    <input type="radio" name="rv-status" value="FLAGGED_ILLEGAL" id="rv-status-illegal">
+                    <span class="rv-status-pill illegal" data-i18n="sea_marshall.form_illegal">🚨 Flag as Illegal / Suspicious</span>
+                  </label>
+                </div>
+              </div>
+              <!-- Row 6: Movement Status -->
+              <div class="form-group" style="grid-column:span 3">
+                <label class="form-label" style="font-size:13px" data-i18n="sea_marshall.form_movement">Current Movement Status</label>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px">
+                  <label class="rv-status-option">
+                    <input type="radio" name="rv-movement" value="APPROACHING" id="rv-mov-approaching" checked>
+                    <span class="rv-status-pill" style="background:rgba(2,132,199,0.09);color:#0284C7;border-color:rgba(2,132,199,0.25)" data-i18n="sea_marshall.form_approaching">🔵 Approaching</span>
+                  </label>
+                  <label class="rv-status-option">
+                    <input type="radio" name="rv-movement" value="DOCKED" id="rv-mov-docked">
+                    <span class="rv-status-pill" style="background:rgba(26,127,75,0.09);color:#1A7F4B;border-color:rgba(26,127,75,0.25)" data-i18n="sea_marshall.form_docked">⚓ Docked at Port</span>
+                  </label>
+                  <label class="rv-status-option">
+                    <input type="radio" name="rv-movement" value="DEPARTING" id="rv-mov-departing">
+                    <span class="rv-status-pill" style="background:rgba(180,83,9,0.09);color:#B45309;border-color:rgba(180,83,9,0.25)" data-i18n="sea_marshall.form_departing">🚢 Departing</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="register-form-footer">
+              <div style="font-size:11px;color:var(--color-text-muted)">
+                ⚑ After registration, vessel will appear in the traffic register with full Inspect, Flag, and Report capabilities.
+              </div>
+              <div style="display:flex;gap:8px">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="resetRegisterForm()" data-i18n="sea_marshall.form_clear_btn">Clear</button>
+                <button type="submit" class="btn btn-primary btn-sm" id="rv-submit-btn" data-i18n="sea_marshall.form_submit_btn">Register Vessel →</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Vessel Table -->
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" data-i18n="sea_marshall.table_title">Vessel Traffic Register — Indian EEZ</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="loadVessels()" data-i18n="common.refresh">↻ Refresh</button>
+          </div>
+        </div>
+        <div class="table-wrapper" style="max-height:520px;overflow-y:auto">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="sea_marshall.th_imo">IMO</th>
+                <th data-i18n="sea_marshall.th_name">Vessel Name</th>
+                <th data-i18n="sea_marshall.th_type">Type</th>
+                <th data-i18n="sea_marshall.th_flag">Flag State</th>
+                <th data-i18n="sea_marshall.th_cargo">Cargo</th>
+                <th data-i18n="sea_marshall.th_tonnage">Gross Tonnage</th>
+                <th data-i18n="sea_marshall.th_destination">Destination</th>
+                <th data-i18n="sea_marshall.th_eta">ETA</th>
+                <th data-i18n="sea_marshall.th_captain">Captain</th>
+                <th data-i18n="sea_marshall.th_crew">Crew</th>
+                <th data-i18n="sea_marshall.th_position">Position</th>
+                <th data-i18n="sea_marshall.th_status">Status</th>
+                <th data-i18n="sea_marshall.th_clearance">Clearance</th>
+                <th data-i18n="sea_marshall.th_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vessel-tbody"><tr><td colspan="14" style="text-align:center;padding:20px;color:var(--color-text-muted)" data-i18n="common.loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="sea-charts">
+        <div class="chart-card"><div class="chart-title" data-i18n="sea_marshall.chart_types">Vessel Types</div><div class="chart-canvas-wrap"><canvas id="chart-vessel-types"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title" data-i18n="sea_marshall.chart_flags">Flag States</div><div class="chart-canvas-wrap"><canvas id="chart-flags"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title" data-i18n="sea_marshall.chart_movement">Movement Status</div><div class="chart-canvas-wrap"><canvas id="chart-movement"></canvas></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/translation.js"></script>
+<script src="/js/ui-components.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/sea-marshall.js"></script>
+</body>
+</html>

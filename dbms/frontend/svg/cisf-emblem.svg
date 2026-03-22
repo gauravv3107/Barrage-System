@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" fill="none">
+  <!-- Hexagonal badge -->
+  <polygon points="50,8 88,30 88,74 50,96 12,74 12,30" fill="#002147" stroke="#C0A860" stroke-width="2.5"/>
+  <!-- Gear/cog center -->
+  <circle cx="50" cy="52" r="12" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+  <circle cx="50" cy="52" r="5" fill="#FFFFFF"/>
+  <g stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round">
+    <line x1="50" y1="36" x2="50" y2="42"/>
+    <line x1="50" y1="62" x2="50" y2="68"/>
+    <line x1="36" y1="52" x2="42" y2="52"/>
+    <line x1="58" y1="52" x2="64" y2="52"/>
+    <line x1="40" y1="42" x2="44" y2="46"/>
+    <line x1="56" y1="58" x2="60" y2="62"/>
+    <line x1="40" y1="62" x2="44" y2="58"/>
+    <line x1="56" y1="46" x2="60" y2="42"/>
+  </g>
+  <text x="50" y="80" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">CISF</text>
+  <text x="50" y="106" font-family="Inter,sans-serif" font-size="5.5" font-weight="600" fill="rgba(255,255,255,0.65)" text-anchor="middle">GOVERNMENT OF INDIA</text>
+</svg>

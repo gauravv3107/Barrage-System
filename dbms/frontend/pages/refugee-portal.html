@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBMS — Refugee Self-Service Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Hind:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/refugee-portal.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div class="app-shell">
+  <!-- Always-visible sidebar — consistent with all other portals -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/svg/dbms-logo.svg" style="width:32px;height:32px" alt="DBMS">
+      <div><div class="sidebar-brand-text">DBMS</div><div class="sidebar-brand-sub">Refugee Portal</div></div>
+    </div>
+    <div class="sidebar-nav">
+      <a href="/pages/dashboard.html" class="nav-item"><img src="/svg/icons/dashboard.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.dashboard">Dashboard</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/refugee-portal.html" class="nav-item active"><img src="/svg/icons/refugee.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.refugee_portal">Refugee Portal</span></a>
+      <a href="/pages/ngo-portal.html" class="nav-item"><img src="/svg/icons/ngo.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.ngo_portal">NGO Portal</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/immigration.html" class="nav-item"><img src="/svg/icons/passport.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.immigration">Immigration</span></a>
+      <a href="/pages/sea-marshall.html" class="nav-item"><img src="/svg/icons/ship.svg" style="width:16px;filter:invert(1)" alt=""><span data-i18n="nav.sea_marshall">Sea Marshall</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="lang-pills">
+        <button class="lang-pill active" data-lang="en">English</button>
+        <button class="lang-pill" data-lang="hi">हिन्दी</button>
+      </div>
+      <div class="sidebar-user" id="sidebar-user-info" style="display:flex; flex-direction:column; gap:8px">
+        <div>Refugee Portal</div>
+        <select id="lang-pref-selector" class="form-input" style="width:100%;font-size:12px;padding:4px" onchange="updateLanguagePreference()">
+          <option value="en">English (en)</option>
+          <option value="hi">हिन्दी (hi)</option>
+          <option value="bn">বাংলা (bn)</option>
+          <option value="ta">தமிழ் (ta)</option>
+          <option value="te">తెలుగు (te)</option>
+          <option value="mr">मराठी (mr)</option>
+          <option value="gu">ગુજરાતી (gu)</option>
+        </select>
+      </div>
+      <a href="/index.html" class="btn btn-secondary" style="width:100%;font-size:11px;text-align:center;display:block;box-sizing:border-box">← Return to Login</a>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <header class="top-header">
+      <div class="breadcrumb">Refugee Portal › <strong>Self-Service</strong></div>
+      <div class="header-right">
+        <div class="live-clock" id="live-clock">—</div>
+        <div class="system-badge">Live Feed</div>
+      </div>
+    </header>
+
+    <main class="content-area refugee-main">
+      <!-- Header -->
+      <div class="refugee-header">
+        <img src="/svg/dbms-logo.svg" style="height:56px;margin:0 auto 12px" alt="DBMS">
+        <h1 data-i18n="refugee.title">Refugee Self-Service Portal</h1>
+        <p data-i18n="refugee.subtitle">Find your case status and support information</p>
+      </div>
+
+      <!-- ID Lookup Card -->
+      <div class="id-lookup-card">
+        <div class="id-lookup-title" data-i18n="refugee.id_lookup_title">Find Your Case</div>
+        <div class="id-lookup-sub" data-i18n="refugee.subtitle">Enter the Provisional ID given to you by the registering officer.</div>
+        <div class="form-group" style="margin-bottom:16px">
+          <input type="text" id="prov-id-input" class="id-lookup-input" placeholder="PROV-BSF-2026-004821" style="text-align:center;font-size:16px;padding:12px;letter-spacing:0.04em" data-i18n-placeholder="refugee.id_placeholder">
+        </div>
+        <button class="btn btn-primary" id="btn-lookup" style="width:100%;padding:12px;font-size:14px" onclick="lookupID()">
+          <span data-i18n="refugee.find_button">Find My Record</span>
+        </button>
+        <div style="margin-top:12px;font-size:11px;color:var(--color-text-muted)">
+          If you do not have your Provisional ID, please contact the officer who registered you or call UNHCR: +91-11-4653-7444
+        </div>
+      </div>
+
+      <!-- Status Timeline -->
+      <div class="timeline-container" id="status-timeline" style="display:none;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:24px;margin-bottom:24px">
+        <div style="font-weight:600;margin-bottom:16px" data-i18n="refugee.timeline">Case Progress</div>
+        <div class="timeline-nodes" id="timeline-nodes" style="display:flex;justify-content:space-between;align-items:flex-start;position:relative">
+          <!-- injected via JS -->
+        </div>
+      </div>
+
+      <!-- Status Result Card -->
+      <div class="refugee-status-card" id="refugee-status-card">
+        <div class="status-card-header">✓ <span data-i18n="refugee.your_status">Your Case Status</span></div>
+        <div class="status-card-body">
+          <!-- Identity -->
+          <div class="status-prov-id" id="sc-prov-id">PROV-...</div>
+          <div class="status-detail-grid">
+            <div><div class="status-field-label">Full Name</div><div class="status-field-value" id="sc-name">—</div></div>
+            <div><div class="status-field-label">Nationality</div><div class="status-field-value" id="sc-nationality">—</div></div>
+            <div><div class="status-field-label">Registered By</div><div class="status-field-value" id="sc-force">—</div></div>
+            <div><div class="status-field-label">Registration Date</div><div class="status-field-value" id="sc-registered">—</div></div>
+            <div><div class="status-field-label" data-i18n="refugee.assigned_camp">Assigned Camp</div><div class="status-field-value" id="sc-camp">—</div></div>
+            <div>
+              <div class="status-field-label">Case Status</div>
+              <div id="sc-status">—</div>
+            </div>
+            <div><div class="status-field-label" data-i18n="refugee.assigned_ngo">Support Organisation</div><div class="status-field-value" id="sc-ngo">—</div></div>
+            <div><div class="status-field-label">NGO Case Status</div><div id="sc-ngo-status">—</div></div>
+          </div>
+
+          <!-- Help types -->
+          <div style="margin:12px 0">
+            <div class="status-field-label" style="margin-bottom:6px">Assistance Being Provided</div>
+            <div id="sc-tags"></div>
+          </div>
+
+          <!-- Rights -->
+          <div class="rights-section" style="margin-top:16px">
+            <div class="rights-title" data-i18n="refugee.rights_title">Your Rights</div>
+            <div class="rights-list" id="sc-rights"></div>
+          </div>
+
+          <!-- Emergency contacts -->
+          <div style="margin-top:16px">
+            <div class="status-field-label" style="margin-bottom:10px" data-i18n="refugee.emergency_title">Emergency Numbers</div>
+            <div class="emergency-grid" id="sc-emergency"></div>
+          </div>
+
+          <!-- Camp Map -->
+          <div style="margin-top:16px">
+            <div class="status-field-label" style="margin-bottom:8px" data-i18n="refugee.camps_title">Nearby Refugee Camps</div>
+            <div id="refugee-camp-map"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appeals & Requests Section -->
+      <div class="refugee-status-card" id="refugee-appeals-card" style="display:none;margin-top:24px;">
+        <div class="status-card-header" style="color:var(--color-primary);background:var(--color-primary-tint);border-color:var(--color-border)"><span data-i18n="refugee.appeals">Submit Request / Appeal</span></div>
+        <div class="status-card-body">
+          <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:16px;">If you have a medical issue, need to change your NGO assignment, or want to report a problem, submit a request here.</p>
+          <form id="appeal-form" onsubmit="submitAppeal(event)">
+            <div style="margin-bottom:12px">
+              <label class="form-label">Request Type</label>
+              <select id="appeal-type" class="form-input" required>
+                <option value="" disabled selected>Select a type...</option>
+                <option value="medical">Medical Help</option>
+                <option value="ngo_change">Change NGO</option>
+                <option value="issue">Report Issue</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div style="margin-bottom:12px">
+              <label class="form-label">Description</label>
+              <textarea id="appeal-description" class="form-input" rows="3" placeholder="Please describe your request..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" id="appeal-submit">Submit Request</button>
+          </form>
+          <div id="appeal-message" style="margin-top:12px;font-size:13px;font-weight:600;display:none"></div>
+
+          <hr style="border:none;border-top:1px solid var(--color-border);margin:24px 0">
+          
+          <h4 style="margin:0 0 12px 0;font-size:14px;color:var(--color-text-primary)">Past Requests</h4>
+          <div id="past-appeals">
+            <p style="font-size:13px;color:var(--color-text-muted)">No requests submitted yet.</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/translation.js"></script>
+<script src="/js/ui-components.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/refugee-portal.js"></script>
+</body>
+</html>

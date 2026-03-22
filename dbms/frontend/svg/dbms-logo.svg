@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 96" fill="none">
+  <!-- Shield shape -->
+  <path d="M4 8 L40 4 L76 8 L76 56 Q76 88 40 92 Q4 88 4 56 Z" fill="#002147" stroke="#C0A860" stroke-width="2"/>
+  <!-- Horizontal border line -->
+  <line x1="8" y1="50" x2="72" y2="50" stroke="#C0A860" stroke-width="2.5"/>
+  <!-- DBMS text -->
+  <text x="40" y="44" font-family="Inter,sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">DBMS</text>
+  <text x="40" y="76" font-family="Inter,sans-serif" font-size="6" font-weight="600" fill="rgba(255,255,255,0.6)" text-anchor="middle">DIGITAL BORDER MANAGEMENT</text>
+  <!-- Top diamond accent -->
+  <polygon points="40,12 44,18 40,20 36,18" fill="#C0A860" opacity="0.8"/>
+</svg>

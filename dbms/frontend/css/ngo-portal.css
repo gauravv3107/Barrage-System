@@ -1,0 +1,85 @@
+/* ngo-portal.css — NGO Portal module */
+
+/* Assignment cards feed */
+.assignments-feed { display: flex; flex-direction: column; gap: 12px; }
+.assignment-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  border-left: 4px solid var(--color-primary);
+  transition: box-shadow 150ms;
+}
+.assignment-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+.assignment-card.status-pending      { border-left-color: var(--color-warning); }
+.assignment-card.status-acknowledged { border-left-color: var(--color-info); }
+.assignment-card.status-in-progress  { border-left-color: var(--color-primary); }
+.assignment-card.status-completed    { border-left-color: var(--color-success); }
+
+.assignment-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.assignment-prov { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--color-primary); }
+.assignment-force { font-size: 11px; color: var(--color-text-muted); margin-top: 2px; }
+.assignment-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.assignment-nat  { font-size: 12px; color: var(--color-text-muted); }
+.assignment-message {
+  background: var(--color-bg);
+  border-left: 3px solid var(--color-border-strong);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin: 10px 0;
+}
+.assignment-meta { display: flex; gap: 16px; align-items: center; font-size: 11px; color: var(--color-text-muted); flex-wrap: wrap; }
+.assignment-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.assignment-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+/* Stats summary */
+.ngo-stats { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 20px; }
+
+.ngo-stat {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  text-align: center;
+}
+.ngo-stat-num { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ngo-stat-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
+
+/* Data visualisation charts grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.chart-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.chart-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--color-text-primary);
+}
+.chart-canvas-wrap {
+  position: relative;
+  height: 200px;
+}
+@media (max-width: 900px) {
+  .charts-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .charts-grid { grid-template-columns: 1fr; }
+}
+

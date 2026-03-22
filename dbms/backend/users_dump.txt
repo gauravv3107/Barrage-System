@@ -1,0 +1,10 @@
+unhcr.india@unhcr.org,unhcr_india,ngo_admin
+brsn.support@ngo.in,bengal_refugee_support_network,ngo_admin
+pbai.punjab@ngo.in,punjab_border_aid_initiative,ngo_admin
+hrf.himalaya@ngo.in,himalayan_relief_foundation,ngo_admin
+india@donbosco.org,don_bosco_india,ngo_admin
+terai.humanitarian@ngo.in,terai_humanitarian_society,ngo_admin
+nrac.northeast@ngo.in,northeast_refugee_aid_collective,ngo_admin
+mcs.mizoram@ngo.in,mizoram_christian_service,ngo_admin
+rii.delhi@ngo.in,refugees_international_india,ngo_admin
+ahsi.ops@ngo.in,airport_humanitarian_services_india,ngo_admin

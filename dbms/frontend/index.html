@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DBMS — Login | Bureau of Immigration, Govt. of India</title>
+  <meta name="description" content="Secure login for the Digital Border Management System — Bureau of Immigration, Ministry of Home Affairs, Government of India.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Hind:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/login.css">
+</head>
+<body>
+<div class="login-shell">
+  <!-- Left Panel -->
+  <div class="login-left">
+    <img src="/svg/dbms-logo.svg" alt="DBMS Logo" class="login-logo">
+    <div class="login-title" data-i18n="login.title">Digital Border Management System</div>
+    <div class="login-divider"></div>
+    <div class="login-subtitle" data-i18n="login.subtitle">Bureau of Immigration | Ministry of Home Affairs, Government of India</div>
+    <div class="login-tagline" data-i18n="login.tagline">Securing India's borders through intelligence and technology.</div>
+
+    <div class="login-stats-row">
+      <div>
+        <div class="login-stat-num">5</div>
+        <div class="login-stat-label">Border Forces</div>
+      </div>
+      <div>
+        <div class="login-stat-num">15,000+</div>
+        <div class="login-stat-label">KM of Border</div>
+      </div>
+      <div>
+        <div class="login-stat-num">100+</div>
+        <div class="login-stat-label">Checkpoints</div>
+      </div>
+    </div>
+
+    <div class="lang-pills" style="margin-top:auto;padding-top:32px">
+      <button class="lang-pill active" data-lang="en">EN</button>
+      <button class="lang-pill" data-lang="hi">हिं</button>
+    </div>
+
+    <img src="/svg/india-flag.svg" alt="Flag of India" class="login-flag">
+  </div>
+
+  <!-- Right Panel -->
+  <div class="login-right">
+    <div class="login-form-panel">
+      <div class="login-role-label" data-i18n="login.role_label">DBMS LOGIN — SELECT YOUR ROLE</div>
+
+      <div class="role-cards">
+
+        <!-- Authority Card -->
+        <div class="role-card">
+          <div class="role-card-header">
+            <img src="/svg/icons/border-patrol.svg" class="role-icon" alt="">
+            <div>
+              <div class="role-name" data-i18n="login.authority_title">Authority Login</div>
+              <div class="role-desc" data-i18n="login.authority_subtitle">For verified government personnel</div>
+            </div>
+          </div>
+
+          <div class="role-sub-btns">
+            <button class="sub-role-btn" data-subrole="border_patrol" id="btn-bp">🛡 Border Patrol</button>
+            <button class="sub-role-btn" data-subrole="sea_marshall">⚓ Sea Marshall</button>
+            <button class="sub-role-btn" data-subrole="immigration_officer">🛂 Immigration Officer</button>
+          </div>
+
+          <!-- Force selector — shown only when Border Patrol selected -->
+          <div class="force-expand" id="force-expand">
+            <div class="form-group" style="margin-top:8px">
+              <label class="form-label required">Select Force</label>
+              <select id="force-select">
+                <option value="">— Select Border Force —</option>
+                <option value="BSF">Border Security Force (BSF) — Pakistan & Bangladesh</option>
+                <option value="ITBP">Indo-Tibetan Border Police (ITBP) — China</option>
+                <option value="SSB">Sashastra Seema Bal (SSB) — Nepal & Bhutan</option>
+                <option value="Assam Rifles">Assam Rifles (AR) — Myanmar & Northeast</option>
+                <option value="CISF">CISF — Airports & Seaports</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;justify-content:flex-end">
+            <button class="btn btn-primary" data-proceed="border_patrol" id="btn-proceed-authority">
+              <span data-i18n="login.proceed">Proceed →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- NGO Card -->
+        <div class="role-card">
+          <div class="role-card-header">
+            <img src="/svg/icons/ngo.svg" class="role-icon" alt="">
+            <div>
+              <div class="role-name" data-i18n="login.ngo_title">NGO Support Login</div>
+              <div class="role-desc" data-i18n="login.ngo_subtitle">Restricted humanitarian view</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="btn btn-secondary" data-proceed="ngo">
+              <span data-i18n="login.enter_portal">Enter Portal →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Refugee Card -->
+        <div class="role-card">
+          <div class="role-card-header">
+            <img src="/svg/icons/refugee.svg" class="role-icon" alt="">
+            <div>
+              <div class="role-name" data-i18n="login.refugee_title">Refugee Portal</div>
+              <div class="role-desc" data-i18n="login.refugee_subtitle">Provisional ID access</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="btn btn-secondary" data-proceed="refugee">
+              <span data-i18n="login.access_portal">Access Portal →</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="login-footer">
+        <div data-i18n="login.copyright">© 2026 Ministry of Home Affairs, Government of India. Restricted Access.</div>
+        <div style="margin-top:4px;font-size:10px;opacity:0.8">DBMS v2.0 — SECURE GOVERNMENT PLATFORM — All access is monitored and logged.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="/js/config.js"></script>
+<script src="/js/translation.js"></script>
+<script src="/js/ui-components.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+// Handle the proceed buttons — border patrol needs to know which sub-role was last selected
+document.querySelectorAll('[data-proceed]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.dataset.proceed;
+    let force = '';
+    if (type === 'border_patrol') {
+      const sub = document.querySelector('.sub-role-btn.active');
+      if (!sub) { showToast('Select a sub-role first (Border Patrol / Sea Marshall / Immigration)', 'error'); return; }
+      const subRole = sub.dataset.subrole;
+      if (subRole !== 'border_patrol') {
+        // Route sea marshall / immigration directly
+        const routes = { sea_marshall:'/pages/sea-marshall.html', immigration_officer:'/pages/immigration.html' };
+        sessionStorage.setItem('dbms_session', JSON.stringify({ role:'authority', sub_role: subRole, user_id:`DEMO-${subRole.slice(0,4).toUpperCase()}`, logged_in:true }));
+        window.location.href = routes[subRole]; return;
+      }
+      force = document.getElementById('force-select')?.value;
+      if (!force) { showToast('Please select a Border Force', 'error'); return; }
+      const slug = {'BSF':'bsf','ITBP':'itbp','SSB':'ssb','Assam Rifles':'assam-rifles','CISF':'cisf'}[force];
+      sessionStorage.setItem('dbms_session', JSON.stringify({ role:'authority', sub_role:'border_patrol', force, user_id:`DEMO-BP-${force.replace(' ','')}`, logged_in:true }));
+      window.location.href = `/pages/border-patrol/${slug}.html`;
+    } else if (type === 'ngo') {
+      sessionStorage.setItem('dbms_session', JSON.stringify({ role:'ngo', sub_role:'ngo', user_id:'DEMO-NGO', logged_in:true }));
+      window.location.href = '/pages/ngo-portal.html';
+    } else if (type === 'refugee') {
+      sessionStorage.setItem('dbms_session', JSON.stringify({ role:'refugee', sub_role:'refugee', user_id:'REFUGEE', logged_in:true }));
+      window.location.href = '/pages/refugee-portal.html';
+    }
+  });
+});
+
+// Sub-role activation
+document.querySelectorAll('.sub-role-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sub-role-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const forceExpand = document.getElementById('force-expand');
+    if (forceExpand) forceExpand.classList.toggle('open', btn.dataset.subrole === 'border_patrol');
+    // Update main proceed button behaviour label
+    const proceedBtn = document.getElementById('btn-proceed-authority');
+    if (proceedBtn) proceedBtn.dataset.proceed = btn.dataset.subrole === 'border_patrol' ? 'border_patrol' : btn.dataset.subrole;
+  });
+});
+
+// i18n lang pills
+document.querySelectorAll('.lang-pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.lang-pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    if(window.i18n) window.i18n.switch(btn.dataset.lang);
+  });
+});
+
+window.addEventListener('DOMContentLoaded',()=>{ if(window.i18n) window.i18n.init(); });
+</script>
+</body>
+</html>

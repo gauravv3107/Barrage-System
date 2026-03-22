@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="dbms-force" content="Assam Rifles">
+  <title>DBMS — Assam Rifles (Assam Rifles)</title>
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/border-patrol.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div class="app-shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <img src="/svg/dbms-logo.svg" style="width:32px;height:32px" alt="DBMS">
+      <div><div class="sidebar-brand-text">DBMS</div><div class="sidebar-brand-sub">Assam Rifles — Myanmar Border & Northeast India</div></div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="sidebar-section-label">Navigation</div>
+      <a href="/pages/dashboard.html" class="nav-item"><img src="/svg/icons/dashboard.svg" style="width:16px;filter:invert(1)" alt=""><span>Dashboard</span></a>
+      <div class="sidebar-section-label">Border Forces</div>
+      <a href="/pages/border-patrol/bsf.html" class="nav-item"><img src="/svg/icons/border-patrol.svg" style="width:16px;filter:invert(1)" alt=""><span>BSF</span></a>
+      <a href="/pages/border-patrol/itbp.html" class="nav-item"><img src="/svg/icons/border-patrol.svg" style="width:16px;filter:invert(1)" alt=""><span>ITBP</span></a>
+      <a href="/pages/border-patrol/ssb.html" class="nav-item"><img src="/svg/icons/border-patrol.svg" style="width:16px;filter:invert(1)" alt=""><span>SSB</span></a>
+      <a href="/pages/border-patrol/assam-rifles.html" class="nav-item active"><img src="/svg/icons/border-patrol.svg" style="width:16px;filter:invert(1)" alt=""><span>Assam Rifles</span></a>
+      <a href="/pages/border-patrol/cisf.html" class="nav-item"><img src="/svg/icons/border-patrol.svg" style="width:16px;filter:invert(1)" alt=""><span>CISF</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/sea-marshall.html" class="nav-item"><img src="/svg/icons/ship.svg" style="width:16px;filter:invert(1)" alt=""><span>Sea Marshall</span></a>
+      <a href="/pages/immigration.html" class="nav-item"><img src="/svg/icons/passport.svg" style="width:16px;filter:invert(1)" alt=""><span>Immigration</span></a>
+      <hr class="sidebar-divider">
+      <a href="/pages/ngo-portal.html" class="nav-item"><img src="/svg/icons/ngo.svg" style="width:16px;filter:invert(1)" alt=""><span>NGO Portal</span></a>
+      <a href="/pages/refugee-portal.html" class="nav-item"><img src="/svg/icons/refugee.svg" style="width:16px;filter:invert(1)" alt=""><span>Refugee Portal</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="lang-pills"><button class="lang-pill active" data-lang="en">EN</button><button class="lang-pill" data-lang="hi">हि</button><button class="lang-pill" data-lang="ta">த</button><button class="lang-pill" data-lang="bn">বা</button></div>
+      <div class="sidebar-user" id="sidebar-user-info">Loading...</div>
+      <button class="btn btn-secondary" id="logout-btn" style="width:100%;font-size:11px">← Logout</button>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <header class="top-header">
+      <div class="breadcrumb">Border Patrol › <strong>Assam Rifles — Assam Rifles</strong></div>
+      <div class="header-right">
+        <div class="live-clock" id="live-clock">—</div>
+        <div class="system-badge">System Online</div>
+      </div>
+    </header>
+    <main class="content-area">
+
+      <!-- Force Identity Header -->
+      <div class="force-identity">
+        <img src="/svg/assam-rifles-emblem.svg" class="force-emblem" alt="Assam Rifles Emblem">
+        <div>
+          <div class="force-name">Assam Rifles (Assam Rifles)</div>
+          <div class="force-fullname">Myanmar Border & Northeast India · HQ: Shillong, Meghalaya</div>
+          <div class="force-meta">
+            <span>Personnel: <strong>63,747</strong></span>
+            <span>Entry Points: <strong>3</strong></span>
+            <span>Assigned Camps: <strong>3</strong></span>
+          </div>
+          <div class="force-motto">"Friends of the Hill People"</div>
+          <div class="force-tags"><span class="force-tag">Nagaland Sector</span><span class="force-tag">Manipur Sector</span><span class="force-tag">Mizoram Sector</span><span class="force-tag">Arunachal Pradesh Sector</span></div>
+        </div>
+      </div>
+
+      <!-- Mission Brief Card -->
+      <div class="card" style="margin-bottom:24px">
+        <div class="card-header"><span class="card-title">Mission Brief</span></div>
+        <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.7">India's oldest Central Armed Police Force (CAPF), established in 1835. Guards 1,643 km of Myanmar border across Nagaland, Manipur, Mizoram, and Arunachal Pradesh.</p>
+        <div style="margin-top:10px;font-size:12px;color:var(--color-text-muted)">Operational Sectors: Nagaland Sector, Manipur Sector, Mizoram Sector, Arunachal Pradesh Sector</div>
+      </div>
+
+      <!-- Tab: Form + Refugees -->
+      <div class="tab-bar">
+        <div class="tab-item active" data-tab="tab-register" data-i18n="border_patrol.form_tab">Register New Refugee</div>
+        <div class="tab-item" data-tab="tab-refugees" data-i18n="border_patrol.refugees_tab">Registered Refugees</div>
+      </div>
+
+      <!-- Tab: Register -->
+      <div class="tab-content active" id="tab-register">
+        <form id="refugee-form" autocomplete="off">
+
+          <!-- Section A: Personal -->
+          <div class="section-header" data-i18n="border_patrol.section_personal">SECTION A — PERSONAL INFORMATION</div>
+          <div class="section-body">
+            <div class="form-row">
+              <div class="form-group"><label class="form-label required">Full Name</label><input type="text" id="f-name" placeholder="As on identity document" required></div>
+              <div class="form-group"><label class="form-label required">Date of Birth</label><input type="date" id="f-dob" required></div>
+              <div class="form-group"><label class="form-label required">Gender</label>
+                <select id="f-gender" required><option value="">Select</option><option>Male</option><option>Female</option><option>Non-binary</option><option>Prefer not to say</option></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section B: Entry -->
+          <div class="section-header" data-i18n="border_patrol.section_entry">SECTION B — ENTRY INFORMATION</div>
+          <div class="section-body">
+            <div class="form-row">
+              <div class="form-group"><label class="form-label required">Nationality / Origin Country</label>
+                <select id="f-nationality" required>
+                  <option value="">Select Nationality</option>
+                  <option>Myanmar</option>
+<option>Bangladeshi</option>
+<option>Sri Lankan</option>
+<option>Afghan</option>
+<option>Syrian</option>
+<option>Rohingya</option>
+<option>Nepali</option>
+<option>Pakistani</option>
+<option>Indian</option>
+<option>Tibetan</option>
+<option>Other</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label required">Entry Point</label>
+                <select id="f-entry-point" required>
+                  <option value="">Select Entry Point</option>
+                  <option>Moreh-Tamu, Manipur</option>
+<option>Zokhawthar, Mizoram</option>
+<option>Champhai, Mizoram</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label">Passport / Travel Document No.</label><input type="text" id="f-passport" placeholder="Leave blank if none — TEMP ID will be assigned"></div>
+            </div>
+          </div>
+
+          <!-- Section C: Watchlist -->
+          <div class="section-header open" data-i18n="border_patrol.section_watchlist">SECTION C — WATCHLIST CHECK</div>
+          <div class="section-body">
+            <div class="watchlist-clear" id="watchlist-clear">✓ No watchlist matches found — Run check by entering name or passport</div>
+            <div class="watchlist-alert" id="watchlist-alert">
+              <div class="watchlist-alert-title">⚠ BLACKLIST MATCH DETECTED</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Matched Entity: <span id="wl-name"></span></div>
+              <div class="watchlist-alert-body" id="wl-reason"></div>
+              <div style="margin-top:10px;font-size:12px;font-weight:700;color:var(--color-alert)">DO NOT REGISTER — Escalate to senior officer and intelligence unit immediately.</div>
+            </div>
+          </div>
+
+          <!-- Section D: Assistance -->
+          <div class="section-header" data-i18n="border_patrol.section_assistance">SECTION D — ASSISTANCE REQUIRED</div>
+          <div class="section-body">
+            <div class="form-row">
+              <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" id="f-need-medical"><span>🏥 Medical Assistance</span></label>
+                <label class="checkbox-item"><input type="checkbox" id="f-need-shelter"><span>🏠 Shelter Required</span></label>
+                <label class="checkbox-item"><input type="checkbox" id="f-need-legal"><span>⚖️ Legal Aid Required</span></label>
+              </div>
+              <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" id="f-need-child"><span>👶 Child Protection</span></label>
+                <label class="checkbox-item"><input type="checkbox" id="f-need-education"><span>📚 Education Access</span></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section E: Camp -->
+          <div class="section-header" data-i18n="border_patrol.section_camp">SECTION E — CAMP ASSIGNMENT</div>
+          <div class="section-body">
+            <div class="camps-layout">
+              <div class="form-group"><label class="form-label required">Assign to Camp</label>
+                <select id="f-camp" required>
+                  <option value="">Select Refugee Camp</option>
+                  <option>Zokhawthar, Mizoram</option>
+<option>Champhai, Mizoram</option>
+<option>Matia Transit Camp, Assam</option>
+                </select>
+              </div>
+              <div id="camps-mini-map"></div>
+            </div>
+          </div>
+
+          <!-- Section F: NGO -->
+          <div class="section-header" data-i18n="border_patrol.section_ngo">SECTION F — NGO ASSIGNMENT</div>
+          <div class="section-body">
+            <input type="hidden" id="f-ngo-selected" required>
+            <input type="hidden" id="f-ngo-id">
+            <div id="ngo-cards-container"><p class="text-muted" style="padding:12px">Loading NGOs...</p></div>
+            <div class="form-group" style="margin-top:16px">
+              <label class="form-label required">Message to NGO <span style="font-weight:400;color:var(--color-text-muted)">(Minimum 50 characters — describe the refugee's situation)</span></label>
+              <textarea id="f-ngo-message" placeholder="Describe the refugee's situation, immediate needs, family composition, medical concerns, and any other relevant context for the NGO..."></textarea>
+              <div class="char-count" id="ngo-msg-count">0 / 50 minimum</div>
+            </div>
+          </div>
+
+          <!-- Section G: Notes -->
+          <div class="section-header" data-i18n="border_patrol.section_notes">SECTION G — OFFICER NOTES</div>
+          <div class="section-body">
+            <div class="form-group"><label class="form-label">Operational Notes (Not visible to refugee)</label>
+              <textarea id="f-notes" placeholder="Internal notes for commanding officer..."></textarea>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px">
+            <button type="reset" class="btn btn-secondary" onclick="return confirm('Reset form?')">Reset Form</button>
+            <button type="submit" class="btn btn-primary" id="btn-register" data-i18n="border_patrol.submit_btn">Register Refugee &amp; Notify NGO →</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tab: Refugees -->
+      <div class="tab-content" id="tab-refugees">
+        <div class="filter-bar">
+          <div style="font-size:13px;color:var(--color-text-muted)">Showing all refugees registered by <strong>Assam Rifles</strong></div>
+          <button class="btn btn-secondary btn-sm" onclick="loadRefugeeTable()">↻ Refresh</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Provisional ID</th><th>Name</th><th>Nationality</th><th>Registered</th><th>Camp</th><th>NGO</th><th>Status</th><th>Assistance</th></tr></thead>
+            <tbody id="refugee-tbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-text-muted)">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/translation.js"></script>
+<script src="/js/ui-components.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/map.js"></script>
+<script src="/js/border-patrol.js"></script>
+</body>
+</html>

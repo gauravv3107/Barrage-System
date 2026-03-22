@@ -1,0 +1,17 @@
+{
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Windows",
+  "include": ["routes", "database.py", "app.py"],
+  "extraPaths": [".", "routes"],
+  "typeCheckingMode": "off",
+  "useLibraryCodeForTypes": true,
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none",
+  "reportMissingTypeArgument": "none",
+  "reportUnknownVariableType": "none",
+  "reportUnknownMemberType": "none",
+  "reportUnknownArgumentType": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportOperatorIssue": "none",
+  "reportIndexIssue": "none"
+}

@@ -1,0 +1,251 @@
+/* sea-marshall.css — Sea Marshall module */
+
+/* Critical alert banner */
+.maritime-alert {
+  background: var(--color-alert);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  color: #fff;
+  animation: alertPulse 2s ease infinite;
+}
+.maritime-alert.intercepted {
+  background: var(--color-success);
+  animation: none;
+}
+.maritime-alert-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.maritime-alert-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.maritime-alert-meta {
+  font-size: 13px;
+  opacity: 0.9;
+  line-height: 1.7;
+}
+.maritime-alert-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.btn-alert-action {
+  background: rgba(255,255,255,0.2);
+  border: 1.5px solid rgba(255,255,255,0.5);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 150ms;
+  font-family: var(--font);
+}
+.btn-alert-action:hover { background: rgba(255,255,255,0.3); }
+.btn-alert-action:active { transform: scale(0.97); }
+.btn-alert-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@keyframes alertPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+}
+
+/* Flagged row */
+.row-flagged { background: var(--color-alert-tint) !important; }
+.row-flagged:hover { background: #FEE2E2 !important; }
+
+/* Unverified row */
+.row-unverified { background: rgba(180,130,0,0.06) !important; }
+.row-unverified:hover { background: rgba(180,130,0,0.11) !important; }
+
+.flag-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-alert);
+  animation: alertPulse 2s ease infinite;
+}
+
+/* Vessel drawer detail */
+.imo-verify { display: flex; align-items: center; gap: 8px; }
+.imo-verify-ok      { color: var(--color-success); font-size: 12px; font-weight: 600; }
+.imo-verify-warn    { color: var(--color-alert);   font-size: 12px; font-weight: 600; }
+.vessel-flag-reason {
+  background: var(--color-alert-tint);
+  border-left: 4px solid var(--color-alert);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 12px 14px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #7F1D1D;
+  line-height: 1.7;
+}
+
+/* Analytics row */
+.sea-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+
+/* ── Register New Vessel Sub-Bar ─────────────────────────── */
+.register-vessel-card {
+  border-left: 4px solid var(--color-primary);
+  overflow: hidden;
+  transition: box-shadow 200ms;
+}
+.register-vessel-card:hover { box-shadow: 0 2px 12px rgba(0,87,184,0.10); }
+
+.register-vessel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  cursor: pointer;
+  user-select: none;
+  gap: 16px;
+}
+.register-vessel-header:hover { background: var(--color-bg-hover, rgba(0,87,184,0.03)); }
+
+.register-vessel-icon {
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,87,184,0.08);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.register-new-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--color-primary);
+  background: rgba(0,87,184,0.10);
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+.register-toggle-arrow {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  transition: transform 300ms ease;
+  display: inline-block;
+}
+.register-toggle-arrow.open { transform: rotate(180deg); }
+
+.register-vessel-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 380ms cubic-bezier(0.4,0,0.2,1), padding 300ms;
+  padding: 0 20px;
+  border-top: 0 solid var(--color-border);
+}
+.register-vessel-body.open {
+  max-height: 700px;
+  padding: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.register-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 960px) {
+  .register-form-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .register-form-grid { grid-template-columns: 1fr; }
+}
+
+.register-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.form-hint {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 3px;
+  display: block;
+}
+
+/* ── Verification Status Selector ──────────────────────────── */
+.rv-status-option {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.rv-status-option input[type="radio"] { display: none; }
+.rv-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 150ms;
+  user-select: none;
+}
+.rv-status-pill.cleared   { background: rgba(26,127,75,0.08);  color: var(--color-success); border-color: rgba(26,127,75,0.2); }
+.rv-status-pill.unverified{ background: rgba(180,130,0,0.08);  color: #B27800; border-color: rgba(180,130,0,0.2); }
+.rv-status-pill.illegal   { background: rgba(220,38,38,0.08);  color: var(--color-alert);   border-color: rgba(220,38,38,0.2); }
+
+.rv-status-option input[type="radio"]:checked + .rv-status-pill.cleared   { background: rgba(26,127,75,0.18);  border-color: var(--color-success); box-shadow: 0 0 0 2px rgba(26,127,75,0.15); }
+.rv-status-option input[type="radio"]:checked + .rv-status-pill.unverified{ background: rgba(180,130,0,0.18);  border-color: #B27800; box-shadow: 0 0 0 2px rgba(180,130,0,0.15); }
+.rv-status-option input[type="radio"]:checked + .rv-status-pill.illegal   { background: rgba(220,38,38,0.18);  border-color: var(--color-alert);   box-shadow: 0 0 0 2px rgba(220,38,38,0.15); }
+.rv-status-pill:hover { filter: brightness(0.92); }
+
+/* ── Movement Status Badge ───────────────────────────────────── */
+.mov-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.07);
+}
+
+/* Drawer movement buttons */
+.mov-change-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 16px;
+  border: 1.5px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  transition: all 120ms;
+}
+.mov-change-btn:hover { filter: brightness(0.9); }
+.mov-change-btn.mov-active { font-weight: 800; }
+
+/* Sea charts grid: 3 columns */
+.sea-charts {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+@media (max-width: 900px) {
+  .sea-charts { grid-template-columns: 1fr 1fr !important; }
+}
+
+

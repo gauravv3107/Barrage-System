@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NGO Admin Dashboard - SeaPort</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header" id="ngo-name-header">NGO Portal</div>
+      <div style="padding: 10px 20px; font-size: 13px; color: var(--color-text-muted); border-bottom: 1px solid var(--color-border);">
+        Logged in as: <strong id="user-name-display" style="color:var(--color-primary)">Admin</strong>
+      </div>
+      <div class="nav-links">
+        <div class="nav-link active" data-tab="tab-refugees">Refugees</div>
+        <div class="nav-link" data-tab="tab-workers">Workers</div>
+        <div class="nav-link" data-tab="tab-capacity">Capacity</div>
+        <div class="nav-link" data-tab="tab-requests">Resource Requests</div>
+        <div class="nav-link" data-tab="tab-directory">NGO Directory</div>
+      </div>
+      <div style="margin-top:auto; padding:20px;">
+        <button class="btn btn-secondary" style="width:100%" onclick="logout()">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      
+      <!-- Refugees Tab -->
+      <div id="tab-refugees" class="tab-content" style="display:block;">
+        <div class="page-header">
+          <h2 class="page-title">Assigned Refugees</h2>
+          <button class="btn btn-secondary" onclick="loadRefugees()">↻ Refresh</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>Reg ID</th><th>Name</th><th>Status</th><th>Last Aid Date</th><th>Medical Needs</th></tr>
+            </thead>
+            <tbody id="refugees-tbody">
+              <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Workers Tab -->
+      <div id="tab-workers" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <h2 class="page-title">NGO Workers</h2>
+          <div>
+            <button class="btn btn-secondary" onclick="loadWorkers()">↻ Refresh</button>
+            <button class="btn btn-primary" onclick="openWorkerModal()" style="margin-left:8px;">+ Add Worker</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="workers-tbody">
+              <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Capacity Tab -->
+      <div id="tab-capacity" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <h2 class="page-title">Capacity Management</h2>
+        </div>
+        <div class="card" style="max-width:500px;">
+          <div style="margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+              <span style="font-weight:600; color:var(--color-text-muted);">Current Occupancy</span>
+              <strong id="capacity-text">0 / 0 (0%)</strong>
+            </div>
+            <div class="fill-bar-wrapper">
+              <div id="capacity-bar" class="fill-bar-fill green" style="width:0%"></div>
+            </div>
+          </div>
+          <hr style="border:0; border-top:1px solid var(--color-border); margin:20px 0;">
+          <div class="form-group">
+            <label class="form-label">Update Max Capacity</label>
+            <div style="display:flex; gap:12px;">
+              <input type="number" id="capacity-input" class="form-input" min="0" style="width:150px;">
+              <button class="btn btn-primary" onclick="updateCapacity()">Save Capacity</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resource Requests Tab -->
+      <div id="tab-requests" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <h2 class="page-title">Resource Requests</h2>
+        </div>
+        
+        <div style="display:flex; gap:24px; align-items:flex-start;">
+          <div class="card" style="flex:1;">
+            <h3 style="margin-bottom:16px; font-size:16px;">Submit New Request</h3>
+            <form id="request-form">
+              <div class="form-group">
+                <label class="form-label">Resource Type</label>
+                <select id="req-type" class="form-select" required>
+                  <option value="">Select Type...</option>
+                  <option value="Food">Food & Water</option>
+                  <option value="Medical Supplies">Medical Supplies</option>
+                  <option value="Shelter">Shelter & Bedding</option>
+                  <option value="Legal Support">Legal Support</option>
+                  <option value="Financial Aid">Financial Aid</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Description / Urgency</label>
+                <textarea id="req-desc" class="form-textarea" required placeholder="Describe what is needed and why..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Submit Request</button>
+            </form>
+          </div>
+          
+          <div class="table-container" style="flex:2;">
+            <table style="min-width:100%;">
+              <thead>
+                <tr><th>Date</th><th>Type</th><th>Description</th><th>Status</th></tr>
+              </thead>
+              <tbody id="requests-tbody">
+                <tr><td colspan="4" style="text-align:center;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- NGO Directory Tab -->
+      <div id="tab-directory" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <h2 class="page-title">NGO Directory</h2>
+          <button class="btn btn-secondary" onclick="loadDirectory()">↻ Refresh</button>
+        </div>
+        <div id="directory-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px;">
+          <!-- Load dynamically -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Add Worker Modal -->
+  <div class="modal-overlay" id="worker-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>Add Worker Account</span>
+        <button class="modal-close" onclick="closeWorkerModal()">&times;</button>
+      </div>
+      <form id="worker-form">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="w-name" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="w-email" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="w-pass" class="form-input" required>
+        </div>
+        <div style="text-align:right; margin-top:24px;">
+          <button type="button" class="btn btn-secondary" onclick="closeWorkerModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Worker</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    authGuard();
+
+    const NGO_ID = sessionStorage.getItem('ngo_id');
+    const NGO_NAME = sessionStorage.getItem('ngo_name_user'); // Admin name actually
+    // But we don't have the NGO name string natively in session unless we fetched it. We'll fetch from ngos/all to find ours.
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('user-name-display').innerText = NGO_NAME || 'Admin';
+      
+      // Tab switching
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+          link.classList.add('active');
+          const tabId = link.getAttribute('data-tab');
+          document.getElementById(tabId).style.display = 'block';
+          
+          if (tabId === 'tab-refugees') loadRefugees();
+          if (tabId === 'tab-workers') loadWorkers();
+          if (tabId === 'tab-requests') loadRequests();
+          if (tabId === 'tab-directory') loadDirectory();
+          if (tabId === 'tab-capacity') loadCapacity();
+        });
+      });
+
+      // Initial loads
+      loadRefugees();
+      loadCapacity();
+    });
+
+    async function loadRefugees() {
+      const res = await apiFetch(`/api/ngo/${NGO_ID}/refugees`);
+      const tbody = document.getElementById('refugees-tbody');
+      if (!res.success) {
+        tbody.innerHTML = `<tr><td colspan="5">Error loading refugees</td></tr>`;
+        return;
+      }
+      if (!res.data.length) {
+        tbody.innerHTML = `<tr><td colspan="5">No refugees assigned</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = res.data.map(r => `
+        <tr>
+          <td><span style="font-family:monospace; color:var(--color-primary)">${r.provisional_id || r.reg_id}</span></td>
+          <td style="font-weight:600">${r.name}</td>
+          <td><span class="badge ${r.status==='Flagged'?'badge-open':(r.status==='Verified'?'badge-resolved':'badge-progress')}">${r.status}</span></td>
+          <td>${r.last_aid_date ? new Date(r.last_aid_date).toLocaleDateString() : '<span style="color:#9ca3af">No aid logged</span>'}</td>
+          <td>${r.medical_needs || 'None'}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadWorkers() {
+      const res = await apiFetch(`/api/ngo/${NGO_ID}/workers`);
+      const tbody = document.getElementById('workers-tbody');
+      if (!res.success || !res.data) return;
+      if (!res.data.length) {
+        tbody.innerHTML = `<tr><td colspan="5">No workers created</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = res.data.map(w => `
+        <tr>
+          <td>W-${w.id}</td>
+          <td>${w.name}</td>
+          <td>${w.email}</td>
+          <td><span class="badge badge-info">Worker</span></td>
+          <td>
+            <button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:12px;" onclick="deactivateWorker(${w.id})">Deactivate</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    /* Modal Logic */
+    function openWorkerModal() { document.getElementById('worker-modal').classList.add('active'); }
+    function closeWorkerModal() { document.getElementById('worker-modal').classList.remove('active'); document.getElementById('worker-form').reset(); }
+    
+    document.getElementById('worker-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('w-name').value,
+        email: document.getElementById('w-email').value,
+        password: document.getElementById('w-pass').value
+      };
+      const res = await apiFetch(`/api/ngo/${NGO_ID}/workers`, { method: 'POST', body: JSON.stringify(payload) });
+      if (res.success) {
+        showToast('Worker added');
+        closeWorkerModal();
+        loadWorkers();
+      } else {
+        showToast(res.message, 'error');
+      }
+    });
+
+    async function deactivateWorker(id) {
+      if (!confirm('Are you sure you want to deactivate this worker?')) return;
+      const res = await apiFetch(`/api/ngo/workers/${id}`, { method: 'DELETE' });
+      if (res.success) {
+        showToast('Worker deactivated');
+        loadWorkers();
+      } else {
+        showToast(res.message, 'error');
+      }
+    }
+
+    /* Resource Requests */
+    async function loadRequests() {
+      const res = await apiFetch(`/api/ngo/${NGO_ID}/resource-requests`);
+      const tbody = document.getElementById('requests-tbody');
+      if (!res.success) return;
+      if (!res.data.length) {
+        tbody.innerHTML = `<tr><td colspan="4">No requests found</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = res.data.map(req => {
+        const badgeClass = req.status==='open' ? 'badge-open' : (req.status==='resolved'?'badge-resolved':'badge-progress');
+        return `
+        <tr>
+          <td style="font-size:12px;color:#6b7280">${new Date(req.timestamp).toLocaleString()}</td>
+          <td style="font-weight:600">${req.request_type}</td>
+          <td>${req.description}</td>
+          <td><span class="badge ${badgeClass}">${req.status}</span></td>
+        </tr>
+      `}).join('');
+    }
+
+    document.getElementById('request-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        ngo_id: NGO_ID,
+        request_type: document.getElementById('req-type').value,
+        description: document.getElementById('req-desc').value
+      };
+      const res = await apiFetch(`/api/ngo/resource-request`, { method: 'POST', body: JSON.stringify(payload) });
+      if (res.success) {
+        showToast('Request submitted');
+        document.getElementById('request-form').reset();
+        loadRequests();
+      } else {
+        showToast(res.message, 'error');
+      }
+    });
+
+    /* Capacity */
+    async function loadCapacity() {
+      // Fetch NGO list to find our capacity
+      const res = await apiFetch('/api/dashboard/ngos/all');
+      if (res.success) {
+        const myNgo = res.data.find(n => n.id == NGO_ID);
+        if (myNgo) {
+          document.getElementById('ngo-name-header').innerText = myNgo.name;
+          document.getElementById('capacity-input').value = myNgo.max_capacity;
+          
+          const max = myNgo.max_capacity;
+          const current = myNgo.current_count;
+          const pct = max > 0 ? Math.min(100, (current / max) * 100) : 0;
+          
+          document.getElementById('capacity-text').innerText = `${current} / ${max} (${Math.round(pct)}%)`;
+          
+          const bar = document.getElementById('capacity-bar');
+          bar.style.width = pct + '%';
+          
+          if (pct >= 90) { bar.className = 'fill-bar-fill red'; }
+          else if (pct >= 75) { bar.className = 'fill-bar-fill amber'; }
+          else { bar.className = 'fill-bar-fill green'; }
+        }
+      }
+    }
+
+    async function updateCapacity() {
+      const cap = document.getElementById('capacity-input').value;
+      const res = await apiFetch(`/api/ngo/${NGO_ID}/capacity`, { method: 'PUT', body: JSON.stringify({ max_capacity: cap }) });
+      if (res.success) {
+        showToast('Capacity updated');
+        loadCapacity();
+      } else {
+        showToast(res.message, 'error');
+      }
+    }
+
+    /* Directory */
+    async function loadDirectory() {
+      const res = await apiFetch('/api/dashboard/ngos/all');
+      const grid = document.getElementById('directory-grid');
+      if (res.success) {
+        grid.innerHTML = res.data.map(n => `
+          <div class="card" style="margin-bottom:0; display:flex; flex-direction:column;">
+            <div style="font-weight:700; font-size:16px; margin-bottom:4px; color:var(--color-primary)">${n.name}</div>
+            <div style="font-size:13px; color:var(--color-text-muted); margin-bottom:16px;">${n.focus_area || 'General Support'}</div>
+            
+            <div style="margin-bottom:12px; font-size:14px;">
+              <strong>Contact:</strong> ${n.contact_person || 'N/A'}<br>
+              <a href="mailto:${n.contact_email}">${n.contact_email}</a>
+            </div>
+            
+            <div style="margin-top:auto">
+              <div style="font-size:12px; color:var(--color-text-muted); margin-bottom:4px; display:flex; justify-content:space-between;">
+                <span>Capacity</span> <span>${n.current_count} / ${n.max_capacity}</span>
+              </div>
+              <div class="fill-bar-wrapper" style="height:6px;">
+                <div class="fill-bar-fill ${n.max_capacity>0&&n.current_count/n.max_capacity>=0.9?'red':'green'}" style="width:${n.max_capacity>0?Math.min(100,(n.current_count/n.max_capacity)*100):0}%"></div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        grid.innerHTML = `<div style="color:red">Failed to load directory</div>`;
+      }
+    }
+
+  </script>
+</body>
+</html>

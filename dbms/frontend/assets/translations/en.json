@@ -1,0 +1,99 @@
+{
+  "common": {
+    "search": "Search", "submit": "Submit", "cancel": "Cancel",
+    "loading": "Loading...", "verified": "Verified", "flagged": "Flagged",
+    "pending": "Pending", "provisional": "Provisional", "denied": "Denied",
+    "print": "Print", "close": "Close", "acknowledge": "Acknowledge",
+    "in_progress": "In Progress", "complete": "Complete", "refresh": "Refresh",
+    "view_all": "View All", "register": "Register", "save": "Save", "delete": "Delete"
+  },
+  "login": {
+    "title": "Digital Border Management System",
+    "subtitle": "Bureau of Immigration | Ministry of Home Affairs, Government of India",
+    "tagline": "Securing India's borders through intelligence and technology.",
+    "role_label": "DBMS LOGIN — SELECT YOUR ROLE",
+    "authority_title": "Authority Login",
+    "authority_subtitle": "For verified government personnel",
+    "ngo_title": "NGO Support Login",
+    "ngo_subtitle": "Restricted humanitarian view",
+    "refugee_title": "Refugee Portal",
+    "refugee_subtitle": "Provisional ID access",
+    "select_force": "Select Your Force",
+    "proceed": "Proceed →",
+    "enter_portal": "Enter Portal →",
+    "access_portal": "Access Portal →",
+    "copyright": "© 2026 Ministry of Home Affairs, Government of India. Restricted Access."
+  },
+  "dashboard": {
+    "title": "Command Overview",
+    "breadcrumb": "Dashboard › Command Overview",
+    "kpi_volume": "Total Transit Volume",
+    "kpi_flags": "Active Security Flags",
+    "kpi_aid": "Pending Refugee Aid",
+    "kpi_incidents": "Open Incidents",
+    "map_title": "Live Border Activity Map",
+    "map_live": "LIVE"
+  },
+  "border_patrol": {
+    "title": "Border Patrol",
+    "register_title": "Refugee Registration",
+    "refugees_tab": "Registered Refugees",
+    "form_tab": "Register New Refugee",
+    "section_personal": "SECTION A — PERSONAL INFORMATION",
+    "section_entry": "SECTION B — ENTRY INFORMATION",
+    "section_watchlist": "SECTION C — WATCHLIST CHECK",
+    "section_assistance": "SECTION D — ASSISTANCE REQUIRED",
+    "section_camp": "SECTION E — CAMP ASSIGNMENT",
+    "section_ngo": "SECTION F — NGO ASSIGNMENT",
+    "section_notes": "SECTION G — OFFICER NOTES",
+    "watchlist_clear": "✓ No watchlist matches found",
+    "submit_btn": "Register Refugee & Notify NGO →"
+  },
+  "sea_marshall": {
+    "title": "Sea Marshall Command",
+    "subtitle": "Vessel Traffic Management",
+    "alert_title": "CRITICAL MARITIME SECURITY ALERT",
+    "intercept_btn": "ISSUE INTERCEPT ORDER",
+    "incident_btn": "FILE INCIDENT REPORT",
+    "kpi_total": "Total Vessels",
+    "kpi_cleared": "Cleared for Entry",
+    "kpi_inspected": "Under Inspection",
+    "kpi_alerts": "Critical Alerts"
+  },
+  "immigration": {
+    "title": "Immigration Verification Terminal",
+    "camera_label": "Live Biometric Feed",
+    "document_label": "Document Upload — Passport Scan",
+    "dropzone_text": "Drop passport scan here",
+    "dropzone_sub": "or click to upload — Accepts JPG, PNG, PDF",
+    "scan_btn": "Initiate Verification Scan →",
+    "capture_btn": "Capture Frame",
+    "tab_verify": "Passport Verification Terminal",
+    "tab_travelers": "Traveler Database",
+    "grant_entry": "✓ Grant Entry",
+    "deny_entry": "Deny Entry — Escalate"
+  },
+  "ngo": {
+    "title": "NGO Support Portal",
+    "subtitle": "Humanitarian Coordination Dashboard",
+    "filter_label": "Filter by Status",
+    "acknowledge_btn": "Acknowledge",
+    "in_progress_btn": "Mark In Progress",
+    "complete_btn": "Mark Complete",
+    "empty": "No assignments found."
+  },
+  "refugee": {
+    "title": "Refugee Self-Service Portal",
+    "subtitle": "Find your case status and support information",
+    "id_lookup_title": "Find Your Case",
+    "id_placeholder": "Enter your Provisional ID (e.g., PROV-BSF-2026-004821)",
+    "find_button": "Find My Record",
+    "your_status": "Your Case Status",
+    "assigned_camp": "Assigned Camp",
+    "assigned_ngo": "Support Organisation",
+    "not_found": "No record found. Please contact the officer who registered you.",
+    "rights_title": "Your Rights",
+    "emergency_title": "Emergency Numbers",
+    "camps_title": "Nearby Refugee Camps"
+  }
+}

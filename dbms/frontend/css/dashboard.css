@@ -1,0 +1,85 @@
+/* dashboard.css — Command Dashboard styles */
+.map-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.map-card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.map-card-title { font-size: 14px; font-weight: 700; }
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-success);
+}
+#main-map { height: 500px; }
+
+/* Leaflet overrides */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15) !important;
+  font-family: var(--font) !important;
+}
+.leaflet-popup-content { margin: 12px 16px !important; min-width: 200px; }
+.map-popup-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.map-popup-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid var(--color-border); }
+.map-popup-row:last-child { border-bottom: none; }
+.map-popup-btn { display: block; width: 100%; margin-top: 10px; text-align: center; }
+
+/* Custom markers */
+.custom-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  font-size: 13px;
+}
+.marker-airport  { background: var(--marker-airport); }
+.marker-seaport  { background: var(--marker-seaport); }
+.marker-land     { background: var(--marker-land); }
+.marker-camp     { background: var(--marker-camp); }
+
+/* Legend */
+.map-legend {
+  display: flex;
+  gap: 20px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--color-text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* Charts row */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.chart-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 16px; }
+.chart-title { font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+.chart-canvas-wrap { position: relative; height: 180px; }
+
+/* Refugee management tabs */
+.section-divider {
+  border-top: 1px solid var(--color-border);
+  padding-top: 8px;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
