@@ -211,6 +211,14 @@
 .rv-status-option input[type="radio"]:checked + .rv-status-pill.cleared   { background: rgba(26,127,75,0.18);  border-color: var(--color-success); box-shadow: 0 0 0 2px rgba(26,127,75,0.15); }
 .rv-status-option input[type="radio"]:checked + .rv-status-pill.unverified{ background: rgba(180,130,0,0.18);  border-color: #B27800; box-shadow: 0 0 0 2px rgba(180,130,0,0.15); }
 .rv-status-option input[type="radio"]:checked + .rv-status-pill.illegal   { background: rgba(220,38,38,0.18);  border-color: var(--color-alert);   box-shadow: 0 0 0 2px rgba(220,38,38,0.15); }
+
+.rv-status-pill.mov-approaching { background: rgba(2,132,199,0.09); color: #0284C7; border-color: rgba(2,132,199,0.25); }
+.rv-status-pill.mov-docked      { background: rgba(26,127,75,0.09); color: #1A7F4B; border-color: rgba(26,127,75,0.25); }
+.rv-status-pill.mov-departing   { background: rgba(180,83,9,0.09);  color: #B45309; border-color: rgba(180,83,9,0.25); }
+.rv-status-option input[type="radio"]:checked + .rv-status-pill.mov-approaching { background: rgba(2,132,199,0.20); border-color: #0284C7; box-shadow: 0 0 0 2px rgba(2,132,199,0.15); }
+.rv-status-option input[type="radio"]:checked + .rv-status-pill.mov-docked      { background: rgba(26,127,75,0.20); border-color: #1A7F4B; box-shadow: 0 0 0 2px rgba(26,127,75,0.15); }
+.rv-status-option input[type="radio"]:checked + .rv-status-pill.mov-departing   { background: rgba(180,83,9,0.20); border-color: #B45309; box-shadow: 0 0 0 2px rgba(180,83,9,0.15); }
+
 .rv-status-pill:hover { filter: brightness(0.92); }
 
 /* ── Movement Status Badge ───────────────────────────────────── */

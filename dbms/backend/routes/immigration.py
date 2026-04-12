@@ -59,7 +59,7 @@ def verify_passport():
             'interpol_clear':   r['is_blacklist'] == 0,
             'face_match_score': face_match,
         }
-        overall = 'Verified' if all(checks[k] for k in checks if k != 'face_match_score') and face_match > 80 else 'Flagged'
+        overall = 'Verified' if all(checks[k] for k in checks if k != 'face_match_score') and face_match >= 90 else 'Flagged'
         return api_response(data={
             'found':          True,
             'entity':         r,
@@ -97,8 +97,13 @@ def search_travelers():
         conditions.append("(name LIKE ? OR passport_no LIKE ?)")
         params += [f'%{q}%', f'%{q}%']
     if status:
-        conditions.append("status=?")
-        params.append(status)
+        if status == 'Under Verification':
+            conditions.append("status IN ('Pending', 'Provisional', 'under_verification')")
+        elif status == 'Blacklisted':
+            conditions.append("(status IN ('Flagged', 'Blacklisted') OR is_blacklist=1)")
+        else:
+            conditions.append("status=?")
+            params.append(status)
     if nat:
         conditions.append("nationality LIKE ?")
         params.append(f'%{nat}%')
@@ -410,7 +415,7 @@ def get_under_investigation():
 def flag_investigation(entity_id):
     db = get_db()
     try:
-        db.execute("UPDATE entities SET investigation_flag=1, status='Flagged', updated_at=datetime('now') WHERE id=?", (entity_id,))
+        db.execute("UPDATE entities SET investigation_flag=1, status='Pending', updated_at=datetime('now') WHERE id=?", (entity_id,))
         row = db.execute("SELECT name FROM entities WHERE id=?", (entity_id,)).fetchone()
         name = row['name'] if row else entity_id
         

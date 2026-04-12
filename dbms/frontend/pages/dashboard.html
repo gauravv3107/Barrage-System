@@ -101,6 +101,11 @@
           <div class="kpi-label" data-i18n="dashboard.kpi_flags">Active Security Flags</div>
           <div class="kpi-value text-danger" id="kpi-flags">—</div>
           <div class="kpi-delta down" data-i18n="dashboard.kpi_flags_sub">⚠ Requires attention</div>
+          <select id="redirect-flags-select" class="form-input" style="margin-top:8px;font-size:11px;padding:4px;width:100%">
+            <option value="/pages/sea-marshall.html">Sea Marshall (Vessels)</option>
+            <option value="/pages/immigration.html">Immigration (Travelers)</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="window.location.href=document.getElementById('redirect-flags-select').value" style="width:100%;margin-top:4px;font-size:10px">Take me there</button>
         </div>
         <div class="kpi-card" style="border-left-color:var(--color-warning)">
           <div class="kpi-label">Registered Refugees</div>
@@ -108,9 +113,14 @@
           <div class="kpi-delta">Total registered across all forces</div>
         </div>
         <div class="kpi-card" style="border-left-color:var(--color-success)">
-          <div class="kpi-label" data-i18n="dashboard.kpi_incidents">Open Incidents</div>
+          <div class="kpi-label">Under Verification</div>
           <div class="kpi-value" id="kpi-incidents">—</div>
-          <div class="kpi-delta" data-i18n="dashboard.kpi_incidents_sub">System-detected events</div>
+          <div class="kpi-delta">Unverified vessels + flagged persons</div>
+          <select id="redirect-incidents-select" class="form-input" style="margin-top:8px;font-size:11px;padding:4px;width:100%">
+            <option value="/pages/sea-marshall.html">Sea Marshall (Unverified Vessels)</option>
+            <option value="/pages/immigration.html">Immigration (Flagged Persons)</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="window.location.href=document.getElementById('redirect-incidents-select').value" style="width:100%;margin-top:4px;font-size:10px">Take me there</button>
         </div>
       </div>
 
@@ -130,7 +140,7 @@
       </div>
 
       <!-- Charts row -->
-      <div class="charts-grid">
+      <div class="charts-grid" style="grid-template-columns: 1fr 2fr 1fr">
         <div class="chart-card">
           <div class="chart-title" data-i18n="dashboard.chart_entity_types">Entity Type Distribution</div>
           <div class="chart-canvas-wrap"><canvas id="chart-types"></canvas></div>
@@ -139,10 +149,53 @@
           <div class="chart-title" data-i18n="dashboard.chart_entry_points">Top Entry Points by Volume</div>
           <div class="chart-canvas-wrap"><canvas id="chart-entry-points"></canvas></div>
         </div>
-        <div class="chart-card">
-          <div class="chart-title" data-i18n="dashboard.chart_trend">Security Flags — 7-Day Trend</div>
-          <div class="chart-canvas-wrap"><canvas id="chart-trend"></canvas></div>
+
+        <!-- System Health Monitor -->
+        <div class="chart-card" style="display:flex;flex-direction:column;justify-content:space-between">
+          <div class="chart-title" style="text-transform:uppercase;font-size:10px;letter-spacing:0.08em;font-weight:700;color:var(--color-text-muted);margin-bottom:16px">System Health</div>
+          <div style="display:flex;flex-direction:column;gap:14px;flex:1">
+            <div class="sys-health-row">
+              <span class="sys-dot sys-dot-green"></span>
+              <span class="sys-comp">GPS Tracking</span>
+              <span class="sys-status" style="color:var(--color-success)">Active</span>
+            </div>
+            <div class="sys-health-row">
+              <span class="sys-dot sys-dot-green"></span>
+              <span class="sys-comp">Database Sync</span>
+              <span class="sys-status" style="color:var(--color-success)">Stable</span>
+            </div>
+            <div class="sys-health-row">
+              <span class="sys-dot sys-dot-green"></span>
+              <span class="sys-comp">Border Sensors</span>
+              <span class="sys-status" style="color:var(--color-success)">Active</span>
+            </div>
+            <div class="sys-health-row">
+              <span class="sys-dot sys-dot-green"></span>
+              <span class="sys-comp">Sea Marshal Feed</span>
+              <span class="sys-status" style="color:var(--color-success)">Active</span>
+            </div>
+            <div class="sys-health-row">
+              <span class="sys-dot sys-dot-green"></span>
+              <span class="sys-comp">Incident Detection</span>
+              <span class="sys-status" style="color:var(--color-success)">Active</span>
+            </div>
+            <div class="sys-health-row">
+              <span class="sys-dot sys-dot-green"></span>
+              <span class="sys-comp">Immigration API</span>
+              <span class="sys-status" style="color:var(--color-success)">Online</span>
+            </div>
+            <div class="sys-health-row">
+              <span class="sys-dot sys-dot-green"></span>
+              <span class="sys-comp">NGO Portal</span>
+              <span class="sys-status" style="color:var(--color-success)">Online</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--color-border);font-size:10px;color:var(--color-text-muted);display:flex;align-items:center;gap:6px">
+            <span class="sys-dot sys-dot-green" style="width:7px;height:7px"></span>
+            All systems operational
+          </div>
         </div>
+
       </div>
 
       <!-- ── Refugee & NGO Assignment Section ───────────────── -->

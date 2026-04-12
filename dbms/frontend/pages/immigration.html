@@ -51,7 +51,6 @@
       <div class="tab-bar">
         <div class="tab-item active" data-tab="tab-verify" data-i18n="immigration.tab_verify">Passport Verification Terminal</div>
         <div class="tab-item" data-tab="tab-travelers" data-i18n="immigration.tab_travelers">Traveler Database</div>
-        <div class="tab-item" data-tab="tab-visa-expiry">Visa Expiry Check</div>
         <div class="tab-item" data-tab="tab-investigation">Under Investigation</div>
       </div>
 
@@ -69,6 +68,9 @@
               <button class="btn btn-primary btn-sm" id="btn-capture" onclick="captureFrame()">
                 <img src="/svg/icons/camera.svg" style="width:13px;height:13px;filter:invert(1)" alt=""> <span data-i18n="immigration.capture_btn">Capture Frame</span>
               </button>
+              <button id="btn-upload-face" onclick="uploadFaceImage()" title="Officer-authorized: upload face image instead of webcam"
+                style="width:28px;height:28px;border-radius:50%;border:2px solid var(--color-border);background:var(--color-surface);color:var(--color-text-secondary);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin-left:6px;flex-shrink:0;transition:border-color .2s,color .2s"
+                title="Upload face photo (requires officer authorization)">📁</button>
               <span class="text-muted text-xs" style="margin-left:8px">Frame used for face match analysis</span>
             </div>
           </div>
@@ -136,39 +138,6 @@
             </tr></thead>
             <tbody id="traveler-tbody"><tr><td colspan="12" style="text-align:center;padding:20px;color:var(--color-text-muted)">Select tab to load travelers</td></tr></tbody>
           </table>
-        </div>
-      </div>
-      <!-- Tab: Visa Expiry -->
-      <div class="tab-content" id="tab-visa-expiry">
-        <div class="filter-bar" style="display:flex;justify-content:space-between;align-items:center;background:var(--color-surface);padding:16px;">
-          <div>
-            <h3 style="margin:0;font-size:16px;color:var(--color-text-primary)">Visa Expiry Tracker</h3>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <label class="form-label" style="margin:0">Warn before expiry (days):</label>
-            <input type="number" id="visa-warning-days" class="form-input" style="width:70px;padding:6px" value="30">
-            <button class="btn btn-primary btn-sm" onclick="saveExpiryThreshold()">Save Threshold</button>
-          </div>
-        </div>
-        <div style="padding:16px;display:flex;gap:24px;">
-          <!-- Expired List -->
-          <div style="flex:1;">
-            <h4 style="margin:0 0 16px;color:var(--color-alert);display:flex;align-items:center;gap:8px">
-              <span class="badge" style="background:var(--color-alert);color:#fff" id="count-expired">0</span> Already Expired
-            </h4>
-            <div id="list-expired" style="display:flex;flex-direction:column;gap:12px">
-              <p style="color:var(--color-text-muted);font-size:13px">Loading...</p>
-            </div>
-          </div>
-          <!-- Expiring Soon List -->
-          <div style="flex:1;">
-            <h4 style="margin:0 0 16px;color:var(--color-warning);display:flex;align-items:center;gap:8px">
-              <span class="badge" style="background:var(--color-warning);color:#fff" id="count-expiring">0</span> Expiring Soon
-            </h4>
-            <div id="list-expiring" style="display:flex;flex-direction:column;gap:12px">
-              <p style="color:var(--color-text-muted);font-size:13px">Loading...</p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -278,7 +247,52 @@
   </div>
 </div>
 
+<!-- Escalate / Deny Entry Modal -->
+<div class="traveler-modal-overlay" id="escalate-modal" style="display:none" onclick="closeEscalateModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--color-alert)">⚠ Deny Entry — Escalate to Investigation</div>
+      <button class="modal-close" onclick="closeEscalateModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#FEF2F2;border:1px solid var(--color-alert);border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--color-alert)">
+        Entry is being denied. Fill in the traveler's details to log this record and flag it for investigation.
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Full Name</label>
+          <input type="text" id="esc-name" placeholder="As on document">
+        </div>
+        <div class="form-group">
+          <label class="form-label required">Nationality</label>
+          <input type="text" id="esc-nationality" placeholder="e.g. Indian">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Passport / Doc No.</label>
+          <input type="text" id="esc-passport" placeholder="Leave blank to auto-assign">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Entry Point</label>
+          <input type="text" id="esc-entry-point" placeholder="e.g. IGI Airport">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Officer Notes / Reason for Denial</label>
+        <textarea id="esc-notes" class="form-input" rows="3" placeholder="Describe the reason for denial and escalation..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeEscalateModal()">Cancel</button>
+      <button class="btn btn-danger" id="esc-submit-btn" onclick="submitEscalation()">⚠ Deny &amp; Flag for Investigation</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <script src="/js/config.js"></script>
 <script src="/js/translation.js"></script>
 <script src="/js/ui-components.js"></script>

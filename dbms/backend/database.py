@@ -183,9 +183,6 @@ def init_db():
                 pass
         conn.commit()
 
-        # Fix existing records
-        conn.execute("UPDATE vessels SET health_clearance = 1 WHERE health_clearance IS NULL OR health_clearance = 0")
-        conn.execute("UPDATE vessels SET customs_clearance = 1 WHERE customs_clearance IS NULL OR customs_clearance = 0")
         conn.commit()
 
     # Create vessel_clearance_log table

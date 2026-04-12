@@ -24,11 +24,25 @@ def _apply_status_overrides(vessels, db):
         if d['imo'] in override_map:
             d['status'] = override_map[d['imo']]
         st = str(d.get('status') or 'CLEARED')
-        d['is_flagged'] = bool(d.get('is_flagged')) or (st == 'FLAGGED_ILLEGAL')
+        if st == 'CLEARED':
+            d['is_flagged'] = False
+        else:
+            d['is_flagged'] = bool(d.get('is_flagged')) or (st == 'FLAGGED_ILLEGAL' or st == 'INTERCEPTED')
         if not d.get('movement_status'):
             d['movement_status'] = 'APPROACHING'
         result.append(d)
     return result
+
+def _ensure_vessel_in_db(db, imo):
+    existing = db.execute("SELECT imo FROM vessels WHERE imo=?", (imo,)).fetchone()
+    if not existing:
+        json_vessels = _load_json_vessels()
+        v = next((x for x in json_vessels if x['imo'] == imo), None)
+        if v:
+            db.execute('''INSERT INTO vessels (imo, vessel_name, vessel_type, flag_state, status, is_flagged, movement_status) 
+                          VALUES (?, ?, ?, ?, ?, ?, ?)''', 
+                       (imo, v['vessel_name'], v['vessel_type'], v.get('flag_state', 'Unknown'), 'CLEARED', 0, 'APPROACHING'))
+
 
 
 @sea_marshall_bp.route('/vessels', methods=['GET'])
@@ -42,11 +56,27 @@ def get_vessels():
         json_imos = {v['imo'] for v in json_vessels}
         unique_db = [v for v in db_vessels if v['imo'] not in json_imos]
         
-        # Merge DB vessel 'departed_at' values into JSON vessels if they already have an entry
-        override_db = {v['imo']: v.get('departed_at') for v in db_vessels if v.get('departed_at')}
+        override_db = {v['imo']: v for v in db_vessels}
         for jv in json_vessels:
+            if 'health_clearance' not in jv:
+                jv['health_clearance'] = 0
+            if 'customs_clearance' not in jv:
+                jv['customs_clearance'] = 0
+
             if jv['imo'] in override_db:
-                jv['departed_at'] = override_db[jv['imo']]
+                db_v = override_db[jv['imo']]
+                if db_v.get('departed_at') is not None:
+                    jv['departed_at'] = db_v['departed_at']
+                if db_v.get('movement_status') is not None:
+                    jv['movement_status'] = db_v['movement_status']
+                if db_v.get('is_flagged') is not None:
+                    jv['is_flagged'] = db_v['is_flagged']
+                if db_v.get('status') is not None:
+                    jv['status'] = db_v['status']
+                if db_v.get('health_clearance') is not None:
+                    jv['health_clearance'] = db_v['health_clearance']
+                if db_v.get('customs_clearance') is not None:
+                    jv['customs_clearance'] = db_v['customs_clearance']
                 
         all_vessels = json_vessels + unique_db
         all_vessels = _apply_status_overrides(all_vessels, db)
@@ -76,15 +106,18 @@ def get_vessel(imo):
         if not vessel.get('movement_status'):
             vessel['movement_status'] = 'APPROACHING'  # pyre-ignore[6]
             
-        # check if it has a DB departed_at overriding JSON value
-        db_vessel = db.execute("SELECT departed_at FROM vessels WHERE imo=?", (imo,)).fetchone()
-        if db_vessel and db_vessel['departed_at']:
-            vessel['departed_at'] = db_vessel['departed_at']
+        # check if it has a DB departed_at or movement_status overriding JSON value
+        db_vessel = db.execute("SELECT departed_at, movement_status FROM vessels WHERE imo=?", (imo,)).fetchone()
+        if db_vessel:
+            if db_vessel['departed_at']:
+                vessel['departed_at'] = db_vessel['departed_at']
+            if db_vessel['movement_status']:
+                vessel['movement_status'] = db_vessel['movement_status']
             
         # Add clearance defaults if missing from JSON vessels
         if 'health_clearance' not in vessel:
-            vessel['health_clearance'] = 1
-            vessel['customs_clearance'] = 1
+            vessel['health_clearance'] = 0
+            vessel['customs_clearance'] = 0
     finally:
         db.close()
     return api_response(data=vessel)
@@ -337,6 +370,8 @@ def verify_vessel():
             UPDATE vessels SET status='CLEARED', is_flagged=0
             WHERE imo=?
         """, (imo,))
+        db.execute("UPDATE incidents SET status='Resolved' WHERE vessel_imo=?", (imo,))
+
         # Log an incident for audit trail
         inc_id = f"INC-{random.randint(100000,999999)}"
         db.execute("""
@@ -414,7 +449,11 @@ def set_movement_status():
 
     db = get_db()
     try:
+        _ensure_vessel_in_db(db, imo)
         if movement == 'DEPARTING':
+            v = db.execute("SELECT health_clearance, customs_clearance FROM vessels WHERE imo=?", (imo,)).fetchone()
+            if not v or v['health_clearance'] != 1 or v['customs_clearance'] != 1:
+                return api_error("Cannot depart port: Vessel requires both health and customs clearance first.")
             db.execute("UPDATE vessels SET movement_status=?, departed_at=datetime('now') WHERE imo=?", (movement, imo))
         else:
             db.execute("UPDATE vessels SET movement_status=?, departed_at=NULL WHERE imo=?", (movement, imo))
@@ -440,6 +479,11 @@ def health_clearance(imo):
 
     db = get_db()
     try:
+        _ensure_vessel_in_db(db, imo)
+        v_check = db.execute("SELECT movement_status FROM vessels WHERE imo=?", (imo,)).fetchone()
+        if granted and v_check and v_check['movement_status'] != 'DOCKED':
+            return api_error("Clearance can only be granted when vessel is DOCKED at port")
+            
         # Update vessel
         db.execute("""
             UPDATE vessels
@@ -479,6 +523,11 @@ def customs_clearance(imo):
 
     db = get_db()
     try:
+        _ensure_vessel_in_db(db, imo)
+        v_check = db.execute("SELECT movement_status FROM vessels WHERE imo=?", (imo,)).fetchone()
+        if granted and v_check and v_check['movement_status'] != 'DOCKED':
+            return api_error("Clearance can only be granted when vessel is DOCKED at port")
+            
         # Update vessel
         db.execute("""
             UPDATE vessels

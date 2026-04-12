@@ -12,9 +12,14 @@
 // ── State ────────────────────────────────────────────────────────
 let _webcamStream = null;
 let _selectedFile = null;
+let _lastScanData = null;  // stores last verify-passport response for escalation
 let _modalMode    = 'add';   // 'add' | 'edit'
 let _editId       = null;
 let _photoFile    = null;    // selected photo in modal
+
+const FACE_MODELS_URL = '/assets/face-models';
+let faceModelsLoaded = false;
+let webcamDescriptor = null;
 
 // ── Webcam ───────────────────────────────────────────────────────
 async function startCamera() {
@@ -34,14 +39,193 @@ async function startCamera() {
   }
 }
 
-function captureFrame() {
+// ── OCR & MRZ Parsing ─────────────────────────────────────────────
+async function performOCR(file) {
+  try {
+    const { data: { text } } = await Tesseract.recognize(file, 'eng');
+    console.log('[DBMS] Raw OCR text:', text);
+    return parseMRZ(text);
+  } catch (err) {
+    console.warn('[DBMS] OCR extraction failed:', err);
+    return null;
+  }
+}
+
+function parseMRZ(text) {
+  const lines = text.split('\n').map(l => l.replace(/\s/g, '').toUpperCase()).filter(l => l.includes('<<') && l.length >= 30);
+  if (lines.length < 2) return null;
+
+  const result = {};
+  for (let i = 0; i < lines.length - 1; i++) {
+    const l1 = lines[i];
+    const l2 = lines[i+1];
+    // Line 1 heuristic: starts with P and has enough chars
+    if (l1[0] === 'P' && l1.length >= 35) {
+      const country = l1.substring(2, 5).replace(/</g, '');
+      const nameParts = l1.substring(5).split('<<');
+      const lastName = (nameParts[0] || '').replace(/</g, ' ').trim();
+      const givenNames = (nameParts[1] || '').replace(/</g, ' ').trim();
+      result.name = `${givenNames} ${lastName}`.trim();
+      result.nationality = country;
+
+      // Line 2: Passport No (0-9), Nationality (10-13), DOB (13-19), Gender (20), Expiry (21-27)...
+      if (l2.length >= 28) {
+        result.passport_no = l2.substring(0, 9).replace(/</g, '');
+        const dobRaw = l2.substring(13, 19);
+        if (/^\d{6}$/.test(dobRaw)) {
+          const year = parseInt(dobRaw.substring(0, 2));
+          const month = dobRaw.substring(2, 4);
+          const day = dobRaw.substring(4, 6);
+          const currentYearShort = new Date().getFullYear() % 100;
+          const fullYear = (year > currentYearShort + 10) ? 1900 + year : 2000 + year;
+          result.dob = `${fullYear}-${month}-${day}`;
+        }
+      }
+      return result;
+    }
+  }
+  return null;
+}
+
+// ── Face Recognition ─────────────────────────────────────────────
+async function uploadFaceImage() {
+  // Officer permission check
+  const officerId = prompt('Enter your Officer ID to authorize face image upload:');
+  if (!officerId || !officerId.trim()) {
+    showToast('Officer ID required to use face upload.', 'warning');
+    return;
+  }
+  if (!faceModelsLoaded) {
+    showToast('Face models not loaded yet — please wait and try again.', 'warning');
+    return;
+  }
+  // Open file picker
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.onchange = async () => {
+    const file = inp.files?.[0];
+    if (!file) return;
+    const btn = document.getElementById('btn-upload-face');
+    if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+    try {
+      const img = await loadImageElement(file);
+      const detection = await faceapi
+        .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+      if (!detection) {
+        showToast('No face detected in the uploaded image. Please use a clear face photo.', 'error');
+        if (btn) { btn.textContent = '📁'; btn.disabled = false; }
+        return;
+      }
+      webcamDescriptor = detection.descriptor;
+      if (btn) {
+        btn.textContent = '✓';
+        btn.style.borderColor = 'var(--color-success)';
+        btn.style.color = 'var(--color-success)';
+        btn.disabled = false;
+      }
+      showToast(`Face loaded from file (authorized by Officer ${officerId.trim()}) — ready for verification.`, 'success');
+    } catch (err) {
+      showToast('Failed to process face image: ' + err.message, 'error');
+      if (btn) { btn.textContent = '📁'; btn.disabled = false; }
+    }
+  };
+  inp.click();
+}
+
+async function loadFaceModels() {
+  try {
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODELS_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODELS_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODELS_URL)
+    ]);
+    faceModelsLoaded = true;
+    console.log('[DBMS] Face recognition models loaded successfully.');
+  } catch (err) {
+    console.warn('[DBMS] Face models failed to load — API score will be used as fallback.', err);
+    faceModelsLoaded = false;
+  }
+}
+
+async function captureWebcamDescriptor() {
+  const videoEl = document.getElementById('webcam-feed');
+  if (!videoEl || !faceModelsLoaded) return null;
+  try {
+    const detection = await faceapi
+      .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+    if (!detection) {
+      showToast('No face detected in camera. Please look directly at the camera.', 'warning');
+      return null;
+    }
+    webcamDescriptor = detection.descriptor;
+    return webcamDescriptor;
+  } catch (err) {
+    console.warn('[DBMS] Webcam descriptor capture failed:', err);
+    return null;
+  }
+}
+
+async function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    if (src instanceof File || src instanceof Blob) {
+      img.src = URL.createObjectURL(src);
+    } else {
+      img.src = src;
+    }
+  });
+}
+
+async function computeRealFaceMatch(passportImageSource) {
+  if (!faceModelsLoaded || !webcamDescriptor) {
+    return null; // null means: use the API score instead
+  }
+  try {
+    const img = await loadImageElement(passportImageSource);
+    const passportDetection = await faceapi
+      .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+    if (!passportDetection) {
+      showToast('No face detected in passport image. Ensure the photo is clearly visible.', 'warning');
+      return null;
+    }
+    const distance = faceapi.euclideanDistance(
+      webcamDescriptor,
+      passportDetection.descriptor
+    );
+    return parseFloat(Math.max(0, Math.min(100, (1 - distance) * 100)).toFixed(1));
+  } catch (err) {
+    console.warn('[DBMS] Real face match failed — using API score as fallback.', err);
+    return null;
+  }
+}
+
+async function captureFrame() {
   const video = document.getElementById('webcam-feed');
   if (!video || !video.videoWidth) { showToast('Camera not active', 'warning'); return; }
   const canvas = document.createElement('canvas');
   canvas.width  = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext('2d').drawImage(video, 0, 0);
-  showToast('Frame captured — face image stored for match analysis', 'info');
+
+  const descriptor = await captureWebcamDescriptor();
+  const btn = document.getElementById('btn-capture');
+  if (descriptor && btn) {
+    btn.textContent = '✓ Face Captured';
+    btn.style.borderColor = 'var(--color-success)';
+    showToast('Face captured successfully — ready for verification.', 'success');
+  } else {
+    showToast('Frame captured — face image stored for match analysis', 'info');
+  }
 }
 
 // ── Dropzone ─────────────────────────────────────────────────────
@@ -87,6 +271,11 @@ const SCAN_STEPS = [
 
 async function initiateScan() {
   if (!_selectedFile) { showToast('Please upload a passport document first', 'error'); return; }
+  // Face guard: if models loaded but no face captured yet, block scan
+  if (faceModelsLoaded && !webcamDescriptor) {
+    showToast('Please capture your face from the camera (or upload a face image) before scanning.', 'warning');
+    return;
+  }
   const btn = document.getElementById('btn-scan');
   if (btn) { btn.disabled = true; btn.textContent = 'Scanning...'; }
 
@@ -106,21 +295,55 @@ async function initiateScan() {
   await new Promise(r => setTimeout(r, 3500));
 
   const filename = _selectedFile.name.toLowerCase();
-  const passportNo = (filename.includes('vikram') || filename.includes('passport') || filename.includes('mockup'))
+  const demoPassportNo = (filename.includes('vikram') || filename.includes('passport') || filename.includes('mockup'))
     ? 'Z8892104' : null;
+
+  // Run OCR and Face Match in parallel
+  const [ocrData, realScore] = await Promise.all([
+    performOCR(_selectedFile),
+    computeRealFaceMatch(_selectedFile)
+  ]);
 
   const res = await apiFetch('/api/immigration/verify-passport', {
     method: 'POST',
-    body: JSON.stringify({ passport_no: passportNo || '', ocr_name: passportNo ? '' : 'Unknown' })
+    body: JSON.stringify({ 
+      passport_no: demoPassportNo || ocrData?.passport_no || '', 
+      ocr_name: demoPassportNo ? '' : (ocrData?.name || 'Unknown') 
+    })
   });
 
   if (res.success) {
-    if (res.data.overall_status === 'Flagged' && res.data.entity && res.data.entity.id) {
-       // Automatically flag for investigation upon scan mismatch
-       apiFetch(`/api/immigration/travelers/${res.data.entity.id}/flag-investigation`, { method: 'POST' }).then(() => {
-           showToast('Automated mismatch detected. Flagged for investigation.', 'warning');
-       });
+    const ocrIncomplete = !ocrData || !ocrData.name || !ocrData.passport_no || !ocrData.nationality || !ocrData.dob;
+    
+    // Merge OCR data if API didn't find a record
+    if (!res.data.entity) res.data.entity = {};
+    const e = res.data.entity;
+    if (ocrData) {
+      if (!e.name) e.name = ocrData.name;
+      if (!e.nationality) e.nationality = ocrData.nationality;
+      if (!e.passport_no) e.passport_no = ocrData.passport_no;
+      if (!e.dob) e.dob = ocrData.dob;
     }
+
+    if (ocrIncomplete) {
+      res.data.overall_status = 'Flagged';
+    }
+
+    if (realScore !== null && res.data.checks) {
+      res.data.checks.face_match_score = realScore;
+      // Re-derive overall_status using 90% threshold for real face scores
+      const otherChecksOk = res.data.checks.mrz_valid && res.data.checks.not_expired &&
+                            res.data.checks.watchlist_clear && res.data.checks.interpol_clear;
+      // FIX: Allow 90%+ match to override the initial Flagged status from API
+      res.data.overall_status = (otherChecksOk && realScore >= 90) ? 'Verified' : 'Flagged';
+      
+      // Removed: duplicate ocrIncomplete override that was blocking 90%+ success.
+    }
+
+    // NOTE: Automated database flagging/insertion has been removed from the scan sequence as requested.
+    // Flagging/Registration will now only happen when the officer clicks "Grant Entry" or "Deny Entry".
+
+    _lastScanData = res.data;
     renderCertificate(res.data);
     if (statusEl) statusEl.textContent = '✓ Verification complete.';
   } else {
@@ -175,18 +398,127 @@ function renderCertificate(data) {
           ? `<div style="margin-top:16px;display:flex;gap:8px;align-items:center">
                <button class="btn btn-success" onclick="grantEntry('${e.passport_no}')">✓ Grant Entry</button>
              </div>`
-          : `<button class="btn btn-danger" style="margin-top:14px">Deny Entry — Escalate</button>`}
+          : `<button class="btn btn-danger" style="margin-top:14px" onclick="openEscalateModal()">⚠ Deny Entry — Escalate</button>`}
       </div>
     </div>`;
   container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+// ── Escalation Modal ─────────────────────────────────────────────
+function openEscalateModal() {
+  // Pre-fill from last scan if we have entity data
+  const e = _lastScanData?.entity || {};
+  const nameEl = document.getElementById('esc-name');
+  const natEl  = document.getElementById('esc-nationality');
+  const ppEl   = document.getElementById('esc-passport');
+  const epEl   = document.getElementById('esc-entry-point');
+  const notEl  = document.getElementById('esc-notes');
+  if (nameEl) nameEl.value = e.name || '';
+  if (natEl)  natEl.value  = e.nationality || '';
+  if (ppEl)   ppEl.value   = e.passport_no || '';
+  if (epEl)   epEl.value   = e.entry_point || '';
+  if (notEl)  notEl.value  = '';
+  const modal = document.getElementById('escalate-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeEscalateModal(e) {
+  if (e && e.type === 'click') {
+    const overlay = document.getElementById('escalate-modal');
+    if (e.target !== overlay) return;
+  }
+  const modal = document.getElementById('escalate-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function submitEscalation() {
+  const name        = (document.getElementById('esc-name')?.value || '').trim();
+  const nationality = (document.getElementById('esc-nationality')?.value || '').trim();
+  const passportNo  = (document.getElementById('esc-passport')?.value || '').trim();
+  const entryPoint  = (document.getElementById('esc-entry-point')?.value || '').trim();
+  const notes       = (document.getElementById('esc-notes')?.value || '').trim();
+
+  if (!name)        { showToast('Full Name is required', 'error'); return; }
+  if (!nationality) { showToast('Nationality is required', 'error'); return; }
+
+  const btn = document.getElementById('esc-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+
+  // Step 1: check if this traveler already exists in DB (from scan)
+  const existingId = _lastScanData?.entity?.id || null;
+
+  let entityId = existingId;
+
+  if (!existingId) {
+    // Create new traveler record
+    const createRes = await apiFetch('/api/immigration/travelers', {
+      method: 'POST',
+      body: JSON.stringify({
+        name, nationality,
+        passport_no: passportNo || undefined,
+        entry_point: entryPoint,
+        status: 'Pending',
+        investigation_notes: notes || 'Manually escalated — entry denied at border.'
+      })
+    });
+    if (!createRes.success) {
+      showToast('Failed to create record: ' + (createRes.message || 'Unknown error'), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '⚠ Deny & Flag for Investigation'; }
+      return;
+    }
+    entityId = createRes.data.id;
+  } else {
+    // Update existing record investigation notes
+    await apiFetch(`/api/immigration/travelers/${existingId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        investigation_notes: notes || 'Entry denied and escalated for investigation.',
+        status: 'Pending'
+      })
+    });
+  }
+
+  // Step 2: flag for investigation
+  const flagRes = await apiFetch(`/api/immigration/travelers/${entityId}/flag-investigation`, { method: 'POST' });
+
+  if (btn) { btn.disabled = false; btn.textContent = '⚠ Deny & Flag for Investigation'; }
+
+  if (flagRes.success || flagRes.message) {
+    showToast(`Entry denied. ${name} has been flagged for investigation.`, 'warning');
+    closeEscalateModal();
+  } else {
+    showToast('Failed to flag for investigation: ' + (flagRes.message || 'Unknown error'), 'error');
+  }
+}
+
 async function grantEntry(passportNo) {
-  const res = await apiFetch('/api/immigration/grant-entry', {
-    method: 'POST', body: JSON.stringify({ passport_no: passportNo })
-  });
-  if (res.success) showToast(`Entry granted for passport ${passportNo}`, 'success');
-  else showToast('Grant entry failed: ' + res.message, 'error');
+  // If entity is new (not in DB from last scan), create it first
+  const e = _lastScanData?.entity || {};
+  const isNew = !_lastScanData?.found;
+
+  if (isNew) {
+    const createRes = await apiFetch('/api/immigration/travelers', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: e.name || 'Unknown',
+        nationality: e.nationality || 'Unknown',
+        passport_no: passportNo,
+        dob: e.dob,
+        status: 'Verified'
+      })
+    });
+    if (!createRes.success) {
+      showToast('New traveler creation failed: ' + (createRes.message || ''), 'error');
+      return;
+    }
+    showToast(`New traveler ${e.name} registered and entry granted.`, 'success');
+  } else {
+    const res = await apiFetch('/api/immigration/grant-entry', {
+      method: 'POST', body: JSON.stringify({ passport_no: passportNo })
+    });
+    if (res.success) showToast(`Entry granted for passport ${passportNo}`, 'success');
+    else showToast('Grant entry failed: ' + res.message, 'error');
+  }
 }
 
 // ── Traveler DB Table ─────────────────────────────────────────────
@@ -518,12 +850,12 @@ async function uploadPassportPhoto(entityId, file) {
 }
 
 // ── DOMContentLoaded ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadFaceModels();
   startCamera();
   setupDropzone();
 
-  document.getElementById('btn-scan')?.addEventListener('click', initiateScan);
-  document.getElementById('btn-capture')?.addEventListener('click', captureFrame);
+  // NOTE: btn-scan and btn-capture already have onclick= in HTML; no addEventListener needed.
 
   // Photo file input in modal — preview on selection
   document.getElementById('m-photo')?.addEventListener('change', function () {
@@ -549,8 +881,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (content) content.classList.add('active');
       if (tab.dataset.tab === 'tab-travelers') {
         loadTravelers();
-      } else if (tab.dataset.tab === 'tab-visa-expiry') {
-        loadVisaExpiryQueue();
       } else if (tab.dataset.tab === 'tab-investigation') {
         loadInvestigationQueue();
       }
@@ -730,8 +1060,12 @@ window.exportTravelersCSV = async function() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `travelers_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
     a.click();
-    showToast('Export complete', 'success');
+    setTimeout(() => {
+      document.body.removeChild(a);
+      showToast('Export complete', 'success');
+    }, 100);
   } catch (err) {
     showToast('Export failed: ' + err.message, 'error');
   } finally {

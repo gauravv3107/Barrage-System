@@ -10,9 +10,28 @@ def get_kpis():
     db = get_db()
     try:
         volume   = db.execute("SELECT COUNT(*) as c FROM entities").fetchone()['c']
-        flags    = db.execute("SELECT COUNT(*) as c FROM entities WHERE is_blacklist=1 OR status='Flagged'").fetchone()['c']
+        # Immigration Flags (Travelers)
+        imm_flags = db.execute("SELECT COUNT(*) as c FROM entities WHERE type='Traveler' AND (is_blacklist=1 OR status='Flagged' OR status='Blacklisted')").fetchone()['c']
+        # Sea Marshall Flags (Vessel override table has active status)
+        sm_flags = db.execute("SELECT COUNT(*) as c FROM vessel_status WHERE status IN ('FLAGGED_ILLEGAL', 'INTERCEPTED')").fetchone()['c']
+        
+        flags    = imm_flags + sm_flags
         no_ngo   = db.execute("SELECT COUNT(*) as c FROM entities WHERE type IN ('Refugee','Migrant') AND (assigned_ngo IS NULL OR assigned_ngo='')").fetchone()['c']
-        incidents = db.execute("SELECT COUNT(*) as c FROM incidents WHERE status='Open'").fetchone()['c']
+        # Under Verification: only unverified (yellow) vessels
+        unverified_vessels = db.execute(
+            "SELECT COUNT(*) as c FROM vessels WHERE status = 'UNVERIFIED'"
+        ).fetchone()['c']
+        unverified_vessel_overrides = db.execute(
+            "SELECT COUNT(*) as c FROM vessel_status WHERE status = 'UNVERIFIED'"
+        ).fetchone()['c']
+
+        # Under Verification: only Travelers in immigration with "Under Verification" yellow status
+        # (stored as 'Pending' or 'under_verification' — NOT 'Provisional' which belongs to refugees)
+        under_review_entities = db.execute(
+            "SELECT COUNT(*) as c FROM entities WHERE type='Traveler' AND status IN ('Pending', 'under_verification')"
+        ).fetchone()['c']
+
+        incidents = unverified_vessels + unverified_vessel_overrides + under_review_entities
     finally:
         db.close()
 
@@ -22,6 +41,41 @@ def get_kpis():
         'pending_aid': no_ngo,
         'incidents': incidents
     })
+
+
+@dashboard_bp.route('/trend', methods=['GET'])
+def get_trend():
+    import datetime
+    db = get_db()
+    try:
+        # Get counts for the most recent 7 days with data
+        rows = db.execute('''
+            SELECT date(created_at) as d, COUNT(*) as c 
+            FROM entities 
+            WHERE status='Flagged' OR is_blacklist=1
+            GROUP BY d
+            ORDER BY d DESC LIMIT 7
+        ''').fetchall()
+    finally:
+        db.close()
+
+    rows.reverse()
+    days = []
+    values = []
+    
+    for r in rows:
+        try:
+            d_obj = datetime.datetime.strptime(r['d'], '%Y-%m-%d')
+            days.append(d_obj.strftime('%a'))
+        except:
+            days.append(r['d'])
+        values.append(r['c'])
+
+    if not days:
+        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        values = [0] * 7
+
+    return api_response(data={'days': days, 'values': values})
 
 
 @dashboard_bp.route('/marker-stats', methods=['GET'])
@@ -117,7 +171,7 @@ def list_all_refugees():
             ORDER BY rr.registration_date DESC
             LIMIT ? OFFSET ?
         """, (limit, offset)).fetchall()
-        total = db.execute("SELECT COUNT(*) as c FROM refugee_registrations").fetchone()['c']
+        total = db.execute("SELECT COUNT(*) as c FROM refugee_registrations WHERE COALESCE(processed, '') != 'Released'").fetchone()['c']
     finally:
         db.close()
     return api_response(data={'items': [dict(r) for r in rows], 'total': total})
@@ -435,7 +489,7 @@ def reactivate_ngo(ngo_id):
         db.close()
     return api_response(message="NGO reactivated")
 
-@dashboard_bp.route('/refugees/<int:reg_id>', methods=['PUT', 'PATCH'])
+@dashboard_bp.route('/refugees/<reg_id>', methods=['PUT', 'PATCH'])
 def update_refugee(reg_id):
     data = request.get_json(silent=True) or {}
     db = get_db()
@@ -471,7 +525,7 @@ def update_refugee(reg_id):
         if 'reg_status' in data:
             reg_updates['status'] = data['reg_status']
         if 'assistance_type' in data:
-            reg_updates['aid_requirement'] = data['assistance_type']
+            reg_updates['help_tags'] = data['assistance_type']
 
         if reg_updates:
             set_str = ", ".join(f"{k}=?" for k in reg_updates.keys())
@@ -481,7 +535,7 @@ def update_refugee(reg_id):
         # Return updated record
         updated = db.execute("""
             SELECT rr.id AS reg_id, rr.provisional_id, rr.force, rr.registration_date,
-                   rr.assigned_ngo, rr.status AS reg_status, rr.entry_point, rr.aid_requirement as assistance_type, rr.processed,
+                   rr.assigned_ngo, rr.status AS reg_status, rr.entry_point, rr.help_tags as assistance_type, rr.processed,
                    e.name, e.nationality, e.assigned_camp, e.status AS entity_status
             FROM refugee_registrations rr
             JOIN entities e ON e.id = rr.entity_id

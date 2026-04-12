@@ -34,7 +34,7 @@ async function lookupByIMO() {
 }
 
 async function loadVessels() {
-  const res = await apiFetch('/api/sea-marshall/vessels');
+  const res = await apiFetch('/api/sea-marshall/vessels?_t=' + Date.now());
   if (!res.success) { showToast('Failed to load vessel data', 'error'); return; }
   _vessels = res.data;
   renderVesselTable(_vessels);
@@ -45,7 +45,7 @@ async function loadVessels() {
 function updateKPIs(vessels) {
   const total     = vessels.length;
   const flagged   = vessels.filter(v => v.is_flagged || v.status === 'FLAGGED_ILLEGAL').length;
-  const inspected = vessels.filter(v => v.status === 'INTERCEPTED').length;
+  const inspected = vessels.filter(v => (v.status === 'INTERCEPTED' || v.movement_status === 'DOCKED') && (v.health_clearance !== 1 || v.customs_clearance !== 1)).length;
   const cleared   = vessels.filter(v => v.status === 'CLEARED').length;
   const el = id => document.getElementById(id);
   if (el('kpi-total'))     el('kpi-total').textContent     = total;
@@ -400,8 +400,8 @@ window.manageClearance = function(imo) {
            
            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--color-border); display:flex; gap:8px;">
              <strong>Batch Action</strong>
-             <button type="button" class="btn btn-sm" style="background:var(--color-success);color:#fff;margin-left:auto" onclick="prepareClearanceAction('${imo}', 'both', true)" ${mov!=='DOCKED'?'disabled title="Vessel must be docked"':''}>Grant Both</button>
-             <button type="button" class="btn btn-sm" style="background:var(--color-alert);color:#fff" onclick="prepareClearanceAction('${imo}', 'both', false)">Deny Both</button>
+             <button type="button" class="btn btn-sm" style="background:var(--color-success);color:#fff;margin-left:auto" onclick="prepareClearanceAction('${imo}', 'both', true)" ${mov!=='DOCKED'?'disabled title="Vessel must be docked"':((isHC && isCC)?'disabled title="Already granted"':'')}>Grant Both</button>
+             <button type="button" class="btn btn-sm" style="background:var(--color-alert);color:#fff" onclick="prepareClearanceAction('${imo}', 'both', false)" ${(!isHC && !isCC)?'disabled title="Already denied"':''}>Deny Both</button>
            </div>
          </div>
          
@@ -472,8 +472,8 @@ window.confirmClearanceAction = async function(imo) {
   if (btn) btn.disabled = true;
   
   if (pending.type === 'both') {
-    const resH = await apiFetch(`/api/sea-marshall/vessels/${imo}/health-clearance`, { method: 'POST', body: { officer_id, granted: pending.granted, notes: '' } });
-    const resC = await apiFetch(`/api/sea-marshall/vessels/${imo}/customs-clearance`, { method: 'POST', body: { officer_id, granted: pending.granted, notes: '' } });
+    const resH = await apiFetch(`/api/sea-marshall/vessels/${imo}/health-clearance`, { method: 'POST', body: JSON.stringify({ officer_id, granted: pending.granted, notes: '' }) });
+    const resC = await apiFetch(`/api/sea-marshall/vessels/${imo}/customs-clearance`, { method: 'POST', body: JSON.stringify({ officer_id, granted: pending.granted, notes: '' }) });
     if (resH.success && resC.success) {
       showToast(`Both clearances ${pending.granted ? 'granted' : 'denied'}`, 'success');
       const vessel = _vessels.find(v => v.imo === imo);
@@ -501,7 +501,7 @@ window.confirmClearanceAction = async function(imo) {
 window.submitInlineClearance = async function(imo, type, granted, officer_id = 'System') {
   const res = await apiFetch(`/api/sea-marshall/vessels/${imo}/${type}-clearance`, {
     method: 'POST',
-    body: { officer_id, granted, notes: '' }
+    body: JSON.stringify({ officer_id, granted, notes: '' })
   });
   
   if (res.success) {

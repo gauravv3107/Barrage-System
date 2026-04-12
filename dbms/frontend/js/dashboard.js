@@ -19,9 +19,10 @@ async function loadKPIs() {
 }
 
 async function loadCharts() {
-  const [typesRes, epRes] = await Promise.all([
+  const [typesRes, epRes, trendRes] = await Promise.all([
     apiFetch('/api/dashboard/entity-types'),
-    apiFetch('/api/dashboard/top-entry-points')
+    apiFetch('/api/dashboard/top-entry-points'),
+    apiFetch('/api/dashboard/trend')
   ]);
 
   // ── Donut chart: Entity types ──────────────────────────────
@@ -56,27 +57,7 @@ async function loadCharts() {
     });
   }
 
-  // ── Line chart: Security flags (simulated 7-day trend) ─────
-  const lineCtx = document.getElementById('chart-trend')?.getContext('2d');
-  if (lineCtx) {
-    const days   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    const values = [12,18,14,21,17,24,19];
-    new Chart(lineCtx, {
-      type: 'line',
-      data: {
-        labels: days,
-        datasets:[{
-          data: values, borderColor: '#DC2626', backgroundColor: 'rgba(220,38,38,0.07)',
-          fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#DC2626'
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { x: { grid: { display:false }}, y: { grid: { color:'#F0F0F0' }}}
-      }
-    });
-  }
+
 }
 
 // ── Refugee Management Tabs ───────────────────────────────────
@@ -214,7 +195,7 @@ async function submitEditRefugeeForm(e) {
     nationality: document.getElementById('edit-ref-nationality').value,
     assigned_camp: document.getElementById('edit-ref-camp').value,
     assigned_ngo: document.getElementById('edit-ref-ngo').value,
-    status: document.getElementById('edit-ref-status').value,
+    reg_status: document.getElementById('edit-ref-status').value,
     assistance_type: document.getElementById('edit-ref-assistance').value
   };
 
@@ -242,7 +223,7 @@ async function submitEditRefugeeForm(e) {
         <td>${r.assigned_camp || '—'}</td>
         <td>${r.assigned_ngo ? `<span style="color:var(--color-success);font-weight:600">${r.assigned_ngo}</span>` : '<span style="color:var(--color-text-muted)">Unassigned</span>'}</td>
         <td>${statusBadge(r.reg_status || r.entity_status || 'Active')}</td>
-        <td><button class="btn btn-secondary btn-sm" onclick="openEditRefugeeModal(${r.reg_id})">✏ Edit</button></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="openEditRefugeeModal('${r.reg_id}')">✏ Edit</button></td>
       `;
     }
   } else {

@@ -22,15 +22,49 @@
     <!-- Main Content -->
     <main class="main-content" style="max-width:1200px;margin:0 auto;width:100%;">
       
-      <div class="page-header">
-        <h2 class="page-title">Assigned Refugees</h2>
-        <button class="btn btn-secondary" onclick="loadWorkerRefugees()">↻ Refresh Data</button>
+      <div class="nav-links" style="display:flex; gap:16px; border-bottom:1px solid var(--color-border); margin-bottom:24px;">
+        <div class="nav-link active" data-tab="tab-refugees" style="cursor:pointer; padding-bottom:8px; border-bottom:2px solid var(--color-primary); font-weight:600; color:var(--color-primary);">Assigned Refugees</div>
+        <div class="nav-link" data-tab="tab-history" style="cursor:pointer; padding-bottom:8px; color:var(--color-text-muted);">History</div>
       </div>
 
-      <div id="refugees-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(350px, 1fr));gap:20px;">
-        <!-- Loaded via JS -->
+      <div id="tab-refugees" class="tab-content" style="display:block;">
+        <div class="page-header">
+          <h2 class="page-title">Assigned Refugees</h2>
+          <button class="btn btn-secondary" onclick="loadWorkerRefugees()">↻ Refresh Data</button>
+        </div>
+
+        <div id="refugees-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(350px, 1fr));gap:20px;">
+          <!-- Loaded via JS -->
+        </div>
+        <div id="loading-msg" style="text-align:center;padding:40px;color:var(--color-text-muted);">Loading assignments...</div>
       </div>
-      <div id="loading-msg" style="text-align:center;padding:40px;color:var(--color-text-muted);">Loading assignments...</div>
+
+      <div id="tab-history" class="tab-content" style="display:none;">
+        <div class="page-header">
+          <h2 class="page-title">Resource Requests & Appeals</h2>
+          <button class="btn btn-secondary" onclick="loadHistory()">↻ Refresh</button>
+        </div>
+        
+        <h3 style="margin-bottom:12px; border-bottom:1px solid var(--color-border); padding-bottom:8px;">Resource Requests</h3>
+        <div style="background:var(--color-surface); padding:16px; border-radius:8px; margin-bottom:24px;">
+          <table style="width:100%; border-collapse:collapse; text-align:left;">
+            <thead><tr style="border-bottom:1px solid var(--color-border);"><th style="padding:8px;">Date</th><th style="padding:8px;">Type</th><th style="padding:8px;">Description</th><th style="padding:8px;">Status</th></tr></thead>
+            <tbody id="worker-requests-tbody">
+              <tr><td colspan="4" style="text-align:center; padding:16px;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-bottom:12px; border-bottom:1px solid var(--color-border); padding-bottom:8px;">Refugee Appeals</h3>
+        <div style="background:var(--color-surface); padding:16px; border-radius:8px;">
+          <table style="width:100%; border-collapse:collapse; text-align:left;">
+            <thead><tr style="border-bottom:1px solid var(--color-border);"><th style="padding:8px;">Date</th><th style="padding:8px;">Refugee</th><th style="padding:8px;">Appeal Type</th><th style="padding:8px;">Status</th></tr></thead>
+            <tbody id="worker-appeals-tbody">
+              <tr><td colspan="4" style="text-align:center; padding:16px;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
     </main>
   </div>
@@ -48,6 +82,29 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('w-user-name').innerText = sessionStorage.getItem('ngo_name_user') || 'Worker';
+      
+      // Tab switching
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          document.querySelectorAll('.nav-link').forEach(l => {
+            l.classList.remove('active');
+            l.style.borderBottom = 'none';
+            l.style.fontWeight = 'normal';
+            l.style.color = 'var(--color-text-muted)';
+          });
+          document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+          link.classList.add('active');
+          link.style.borderBottom = '2px solid var(--color-primary)';
+          link.style.fontWeight = '600';
+          link.style.color = 'var(--color-primary)';
+          const tabId = link.getAttribute('data-tab');
+          document.getElementById(tabId).style.display = 'block';
+          
+          if (tabId === 'tab-refugees') loadWorkerRefugees();
+          if (tabId === 'tab-history') loadHistory();
+        });
+      });
+
       loadWorkerRefugees();
     });
 
@@ -142,6 +199,48 @@
         loadWorkerRefugees(); // Refresh to update last aid date
       } else {
         showToast(res.message, 'error');
+      }
+    }
+
+    async function loadHistory() {
+      // Load Requests
+      const reqRes = await apiFetch(`/api/ngo/${NGO_ID}/resource-requests`);
+      const reqTbody = document.getElementById('worker-requests-tbody');
+      if (reqRes.success) {
+        if (reqRes.data.length) {
+          reqTbody.innerHTML = reqRes.data.map(req => {
+            return `<tr>
+              <td style="padding:8px; font-size:12px; color:var(--color-text-muted)">${new Date(req.timestamp).toLocaleString()}</td>
+              <td style="padding:8px; font-weight:600">${req.request_type}</td>
+              <td style="padding:8px;">${req.description}</td>
+              <td style="padding:8px;"><span class="badge ${req.status==='open'?'badge-open':(req.status==='resolved'?'badge-resolved':'badge-progress')}">${req.status}</span></td>
+            </tr>`;
+          }).join('');
+        } else {
+          reqTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:16px;">No requests found.</td></tr>`;
+        }
+      } else {
+        reqTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:16px;">Failed to load requests.</td></tr>`;
+      }
+
+      // Load Appeals
+      const appRes = await apiFetch(`/api/ngo/${NGO_ID}/appeals`);
+      const appTbody = document.getElementById('worker-appeals-tbody');
+      if (appRes.success) {
+        if (appRes.data.length) {
+          appTbody.innerHTML = appRes.data.map(a => {
+            return `<tr>
+              <td style="padding:8px; font-size:12px; color:var(--color-text-muted)">${new Date(a.timestamp).toLocaleString()}</td>
+              <td style="padding:8px;"><strong>${a.refugee_name || 'Unknown'}</strong><br><span style="font-size:12px; color:var(--color-text-muted)">${a.provisional_id}</span></td>
+              <td style="padding:8px; font-weight:600">${a.type}</td>
+              <td style="padding:8px;"><span class="badge ${a.status==='open'?'badge-open':'badge-progress'}">${a.status}</span></td>
+            </tr>`;
+          }).join('');
+        } else {
+          appTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:16px;">No appeals found.</td></tr>`;
+        }
+      } else {
+        appTbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:16px;">Failed to load appeals.</td></tr>`;
       }
     }
   </script>
